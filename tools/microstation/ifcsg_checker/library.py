@@ -1,0 +1,346 @@
+"""Load and resolve the single-file IFC+SG checker catalogue."""
+
+import datetime
+import difflib
+import json
+import os
+
+EXACT = "EXACT"
+CASE_MISMATCH = "CASE_MISMATCH"
+NEAR_MISS = "NEAR_MISS"
+UNKNOWN = "UNKNOWN"
+
+CATALOGUE_NAME = "catalogue.json"
+CATALOGUE_FORMAT = "ifcsg-checker-catalogue"
+CATALOGUE_FORMAT_VERSION = 1
+PROPERTY_TYPES = {
+    "Label", "Text", "Boolean", "Integer", "Real", "Length", "Area",
+    "Volume", "Count", "Identifier", "Mass", "Time", "Unknown",
+}
+
+_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
+_TOOL_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_PKG_DIR)))
+DEFAULT_ROOTS = (_TOOL_ROOT, os.environ.get("IFCSG_CHECKER_DIR", ""))
+
+
+def _norm(name):
+    return "".join(ch for ch in str(name).lower() if ch.isalnum())
+
+
+class Resolution(object):
+    __slots__ = ("status", "value", "candidates", "note")
+
+    def __init__(self, status, value=None, candidates=None, note=""):
+        self.status = status
+        self.value = value
+        self.candidates = candidates or []
+        self.note = note
+
+    @property
+    def ok(self):
+        return self.status == EXACT
+
+    def __repr__(self):
+        return "<%s %s>" % (self.status, self.value)
+
+
+class Library(object):
+    """Validated runtime view of ``data/catalogue.json``."""
+
+    def __init__(self, root):
+        self.root = root
+        self.path = os.path.join(root, "data", CATALOGUE_NAME)
+        self.load_errors = []
+        self.catalogue = self._read()
+        self.metadata = self.catalogue.get("metadata", {})
+        self.sgpsets = {}
+        self.sgpsets_by_norm = {}
+        self.property_owners = {}
+        self.identified_components = self.catalogue.get("identified_components", [])
+        self._domain_index = None
+        self._index()
+
+    @staticmethod
+    def discover(explicit_root=None):
+        roots = ([explicit_root] if explicit_root else []) + list(DEFAULT_ROOTS)
+        for root in roots:
+            if root and os.path.isfile(os.path.join(root, "data", CATALOGUE_NAME)):
+                return Library(root)
+        raise IOError(
+            "IFC+SG catalogue not found. Looked for data/%s under: %s"
+            % (CATALOGUE_NAME, ", ".join(x for x in roots if x)))
+
+    def _read(self):
+        try:
+            with open(self.path, "r", encoding="utf-8") as handle:
+                payload = json.load(handle)
+        except (OSError, ValueError) as exc:
+            raise IOError("Cannot read %s: %s" % (self.path, exc))
+        if payload.get("format") != CATALOGUE_FORMAT:
+            raise ValueError("Unsupported catalogue format: %s"
+                             % payload.get("format", "(missing)"))
+        if payload.get("format_version") != CATALOGUE_FORMAT_VERSION:
+            raise ValueError("Unsupported catalogue format version: %s"
+                             % payload.get("format_version", "(missing)"))
+        for key in ("metadata", "property_sets", "area_schemes",
+                    "entity_domains", "identified_components", "rules"):
+            if key not in payload:
+                raise ValueError("Catalogue is missing '%s'." % key)
+        self._validate(payload)
+        return payload
+
+    @staticmethod
+    def _validate(payload):
+        seen_sets = set()
+        for pset in payload["property_sets"]:
+            name = pset.get("name")
+            if not name or not name.startswith(("SGPset_", "Pset_", "Qto_")):
+                raise ValueError("Invalid property set name: %r" % name)
+            if name in seen_sets:
+                raise ValueError("Duplicate property set: %s" % name)
+            seen_sets.add(name)
+            seen_props = set()
+            for prop in pset.get("properties", []):
+                prop_name = prop.get("name")
+                if not prop_name:
+                    raise ValueError("%s contains an unnamed property." % name)
+                if prop_name in seen_props:
+                    raise ValueError("Duplicate property: %s.%s" % (name, prop_name))
+                seen_props.add(prop_name)
+                if prop.get("type") not in PROPERTY_TYPES:
+                    raise ValueError("Unsupported datatype for %s.%s: %s"
+                                     % (name, prop_name, prop.get("type")))
+        rule_ids = [rule.get("id") for rule in payload["rules"]]
+        if any(not rule_id for rule_id in rule_ids):
+            raise ValueError("Every rule must have an id.")
+        if len(rule_ids) != len(set(rule_ids)):
+            raise ValueError("Duplicate validation rule id.")
+
+    def _index(self):
+        entries = list(self.catalogue.get("property_sets", []))
+        for scheme in self.catalogue.get("area_schemes", []):
+            name = scheme.get("property_set")
+            if not name or any(item.get("name") == name for item in entries):
+                continue
+            entries.append({
+                "name": name,
+                "binding": "I",
+                "entities": ["IfcSpace"],
+                "subtypes": [scheme.get("subtype")] if scheme.get("subtype") else [],
+                "verified": True,
+                "source": "catalogue.area_schemes",
+                "properties": scheme.get("properties", []),
+                "object_type_token": scheme.get("object_type_token"),
+            })
+        for entry in entries:
+            name = entry.get("name")
+            if not name:
+                continue
+            self.sgpsets[name] = entry
+            self.sgpsets_by_norm.setdefault(_norm(name), name)
+            for prop in entry.get("properties", []):
+                pname = prop.get("name")
+                if pname:
+                    self.property_owners.setdefault(pname, set()).add(name)
+
+    @property
+    def is_complete(self):
+        return bool(self.metadata.get("complete"))
+
+    @property
+    def provenance(self):
+        return self.metadata
+
+    @property
+    def editions(self):
+        mapping = self.metadata.get("mapping_edition") or "NOT SET"
+        cop = self.metadata.get("cop_edition") or "NOT SET"
+        sources = self.metadata.get("sources", [])
+        return {
+            "mapping_edition": mapping,
+            "cop_edition": cop,
+            "library_version": self.catalogue.get("version", "1.0.0"),
+            "sgpset_source": "catalogue",
+            "sgpset_count": len(self.sgpsets),
+            "untranscribed_count": 0,
+            "built_at": self.metadata.get("built_at", ""),
+            "overrides": "-",
+            "identified_components": len(self.identified_components),
+            "source_files": ", ".join(
+                "%s (%s)" % (source.get("name", "?"), source.get("kind", "?"))
+                for source in sources) or "-",
+            "mapping_age_days": self.mapping_age_days(),
+            "authoritative_mapping": bool(self.metadata.get("authoritative_mapping")),
+        }
+
+    def mapping_age_days(self):
+        raw = self.metadata.get("mapping_edition")
+        if not raw:
+            return None
+        try:
+            edition = datetime.datetime.strptime(str(raw)[:10], "%Y-%m-%d").date()
+        except ValueError:
+            return None
+        return (datetime.date.today() - edition).days
+
+    def rules(self):
+        return self.catalogue.get("rules", [])
+
+    def rule(self, rule_id):
+        for rule in self.rules():
+            if rule.get("id") == rule_id:
+                return rule
+        return {}
+
+    def area_schemes(self):
+        return self.catalogue.get("area_schemes", [])
+
+    def identified_components_for(self, ifc_entity):
+        want = (ifc_entity or "").upper()
+        return [
+            item.get("name")
+            for item in self.identified_components
+            if str(item.get("entity") or "").upper() == want and item.get("name")
+        ]
+
+    def area_scheme_by_token(self, token):
+        if not token:
+            return None
+        want = _norm(token).lstrip("*")
+        for scheme in self.area_schemes():
+            if _norm(scheme.get("object_type_token", "")).lstrip("*") == want:
+                return scheme
+            if _norm(scheme.get("subtype", "")) == want:
+                return scheme
+        return None
+
+    def area_scheme_tokens(self):
+        return [
+            scheme.get("object_type_token")
+            for scheme in self.area_schemes()
+            if scheme.get("object_type_token")
+        ]
+
+    def _catalogue_domains(self):
+        out = []
+        for domain in self.catalogue.get("entity_domains", []):
+            out.append((domain.get("domain") or "", domain.get("members") or []))
+        return out
+
+    def known_entities(self):
+        out = set()
+        for _label, members in self._catalogue_domains():
+            for entity in members:
+                out.add(entity if isinstance(entity, str) else entity.get("entity", ""))
+        out.discard("")
+        return out
+
+    def domains_of(self, entity):
+        if self._domain_index is None:
+            index = {}
+            for label, members in self._catalogue_domains():
+                for item in members:
+                    name = item if isinstance(item, str) else item.get("entity", "")
+                    if not name:
+                        continue
+                    bucket = index.setdefault(name.upper(), [])
+                    if label and label not in bucket:
+                        bucket.append(label)
+            self._domain_index = index
+        return list(self._domain_index.get((entity or "").upper(), []))
+
+    def domain_of(self, entity):
+        return " / ".join(self.domains_of(entity))
+
+    def domains(self):
+        out = []
+        for label, _members in self._catalogue_domains():
+            if label and label not in out:
+                out.append(label)
+        return out
+
+    def resolve_pset(self, name):
+        if not name:
+            return Resolution(UNKNOWN, name)
+        if name in self.sgpsets:
+            return Resolution(EXACT, name)
+        canonical = self.sgpsets_by_norm.get(_norm(name))
+        if canonical and canonical != name:
+            status = CASE_MISMATCH if canonical.lower() == name.lower() else NEAR_MISS
+            return Resolution(status, canonical, [canonical])
+        close = difflib.get_close_matches(
+            name, list(self.sgpsets.keys()), n=3, cutoff=0.82)
+        if close:
+            return Resolution(NEAR_MISS, close[0], close)
+        return Resolution(UNKNOWN, name)
+
+    def resolve_property(self, pset_name, prop_name):
+        entry = self.sgpsets.get(pset_name)
+        if entry is None:
+            return Resolution(
+                UNKNOWN, prop_name, [],
+                "Property set '%s' is not in the loaded catalogue." % pset_name)
+        names = [
+            prop.get("name") for prop in entry.get("properties", [])
+            if prop.get("name")
+        ]
+        if not names:
+            return Resolution(
+                UNKNOWN, prop_name, [],
+                "Property set '%s' has no properties." % pset_name)
+        if prop_name in names:
+            return Resolution(EXACT, prop_name)
+        lowered = dict((item.lower(), item) for item in names)
+        if prop_name and prop_name.lower() in lowered:
+            return Resolution(
+                CASE_MISMATCH, lowered[prop_name.lower()],
+                [lowered[prop_name.lower()]])
+        normed = dict((_norm(item), item) for item in names)
+        if _norm(prop_name) in normed:
+            return Resolution(
+                NEAR_MISS, normed[_norm(prop_name)], [normed[_norm(prop_name)]])
+        close = difflib.get_close_matches(prop_name or "", names, n=3, cutoff=0.80)
+        if close:
+            return Resolution(NEAR_MISS, close[0], close)
+        return Resolution(UNKNOWN, prop_name, [])
+
+    def property_datatype(self, pset_name, prop_name):
+        entry = self.sgpsets.get(pset_name)
+        if entry:
+            for prop in entry.get("properties", []):
+                if prop.get("name") == prop_name:
+                    return prop.get("type")
+        return None
+
+    def property_is_controlled(self, pset_name, prop_name):
+        entry = self.sgpsets.get(pset_name)
+        if entry:
+            for prop in entry.get("properties", []):
+                if prop.get("name") == prop_name:
+                    return bool(prop.get("controlled"))
+        return False
+
+    def required_properties(self, pset_name):
+        entry = self.sgpsets.get(pset_name)
+        if entry is None:
+            return []
+        return [
+            prop.get("name") for prop in entry.get("properties", [])
+            if prop.get("name")
+        ]
+
+    def psets_for_entity(self, ifc_entity):
+        want = (ifc_entity or "").upper()
+        return sorted(
+            name for name, entry in self.sgpsets.items()
+            if any(str(entity).upper() == want
+                   for entity in entry.get("entities", [])))
+
+    def owning_psets(self, prop_name):
+        return sorted(self.property_owners.get(prop_name, set()))
+
+    def disclaimer(self):
+        return self.metadata.get(
+            "disclaimer",
+            "This is a pre-flight aid, not a compliance determination. "
+            "The Qualified Person remains responsible for code compliance.")

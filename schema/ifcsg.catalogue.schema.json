@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ifcsg.catalogue.schema.json",
+  "title": "IFC+SG Checker Catalogue",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "format_version",
+    "version",
+    "metadata",
+    "property_sets",
+    "area_schemes",
+    "entity_domains",
+    "identified_components",
+    "rules"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "format": { "const": "ifcsg-checker-catalogue" },
+    "format_version": { "const": 1 },
+    "version": { "type": "string" },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "authority",
+        "mapping_edition",
+        "cop_edition",
+        "verified_at",
+        "complete",
+        "authoritative_mapping",
+        "sources",
+        "disclaimer"
+      ],
+      "properties": {
+        "authority": { "type": "string" },
+        "mapping_edition": { "type": "string" },
+        "cop_edition": { "type": "string" },
+        "built_at": { "type": "string" },
+        "verified_at": { "type": "string" },
+        "complete": { "type": "boolean" },
+        "authoritative_mapping": { "type": "boolean" },
+        "official_mapping_url": { "type": "string" },
+        "official_cop_url": { "type": "string" },
+        "disclaimer": { "type": "string" },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "kind"],
+            "properties": {
+              "name": { "type": "string" },
+              "kind": { "type": "string" },
+              "sha256": { "type": "string" },
+              "imported_at": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "property_sets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/property_set" }
+    },
+    "area_schemes": { "type": "array", "items": { "type": "object" } },
+    "entity_domains": { "type": "array", "items": { "type": "object" } },
+    "identified_components": { "type": "array", "items": { "type": "object" } },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity"],
+        "properties": {
+          "id": { "type": "string" },
+          "severity": { "enum": ["ERROR", "WARN", "INFO"] },
+          "category": { "type": "string" },
+          "title": { "type": "string" },
+          "check": { "type": "string" },
+          "detail": { "type": "string" },
+          "fix": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "property_set": {
+      "type": "object",
+      "required": ["name", "entities", "properties"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^(SGPset_|Pset_|Qto_).+" },
+        "binding": { "enum": ["I", "T"] },
+        "entities": { "type": "array", "items": { "type": "string" } },
+        "subtypes": { "type": "array", "items": { "type": "string" } },
+        "disciplines": { "type": "array", "items": { "type": "string" } },
+        "agencies": { "type": "array", "items": { "type": "string" } },
+        "gateways": { "type": "array", "items": { "type": "string" } },
+        "verified": { "type": "boolean" },
+        "source": { "type": "string" },
+        "properties": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "properties": {
+              "name": { "type": "string" },
+              "type": {
+                "enum": [
+                  "Label",
+                  "Text",
+                  "Boolean",
+                  "Integer",
+                  "Real",
+                  "Length",
+                  "Area",
+                  "Volume",
+                  "Count",
+                  "Identifier",
+                  "Mass",
+                  "Time",
+                  "Unknown"
+                ]
+              },
+              "unit": { "type": ["string", "null"] },
+              "required": { "type": "boolean" },
+              "controlled": { "type": "boolean" },
+              "enum_values": { "type": "array", "items": { "type": "string" } },
+              "example_values": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

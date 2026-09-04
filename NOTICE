@@ -1,0 +1,7 @@
+The software source code is licensed under the MIT License.
+
+`data/catalogue.json` is a derived interoperability catalogue built from the
+public IFC+SG resources identified in its metadata. Those source materials
+remain subject to the terms and rights of their respective publishers. The
+catalogue is provided for pre-flight validation and does not replace official
+CORENET X material.

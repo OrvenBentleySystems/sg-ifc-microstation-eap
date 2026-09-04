@@ -1,0 +1,56 @@
+ISO-10303-21;
+HEADER;
+FILE_DESCRIPTION(('ViewDefinition [ReferenceView_V1.2]'),'2;1');
+FILE_NAME('fixture.ifc','2026-09-02T09:00:00',('IFC+SG Checker tests'),('None'),'None','None','');
+FILE_SCHEMA(('IFC4'));
+ENDSEC;
+DATA;
+#1= IFCPERSON($,'Tester',$,$,$,$,$,$);
+#2= IFCORGANIZATION($,'None',$,$,$);
+#3= IFCPERSONANDORGANIZATION(#1,#2,$);
+#4= IFCAPPLICATION(#2,'1.0','Fixture','FIX');
+#5= IFCOWNERHISTORY(#3,#4,$,.ADDED.,$,$,$,0);
+
+#10= IFCDIRECTION((1.,0.,0.));
+#11= IFCDIRECTION((0.,0.,1.));
+#12= IFCCARTESIANPOINT((0.,0.,0.));
+#13= IFCAXIS2PLACEMENT3D(#12,#11,#10);
+#14= IFCLOCALPLACEMENT($,#13);
+
+#20= IFCSIUNIT(*,.LENGTHUNIT.,$,.METRE.);
+#21= IFCSIUNIT(*,.AREAUNIT.,$,.SQUARE_METRE.);
+#22= IFCSIUNIT(*,.VOLUMEUNIT.,$,.CUBIC_METRE.);
+#23= IFCUNITASSIGNMENT((#20,#21,#22));
+
+#30= IFCGEOMETRICREPRESENTATIONCONTEXT($,'Model',3,1.E-05,#13,$);
+
+#40= IFCPROJECT('1Fixture0Project00000',#5,'Fixture Project',$,$,$,$,(#30),#23);
+#41= IFCSITE('1Fixture0Site000000000',#5,'Site',$,$,#14,$,$,.ELEMENT.,$,$,0.,$,$);
+#42= IFCBUILDING('1Fixture0Building0000',#5,'Building',$,$,#14,$,$,.ELEMENT.,$,$,$);
+#43= IFCBUILDINGSTOREY('1Fixture0StoreyL01000',#5,'Level 01',$,$,#14,$,$,.ELEMENT.,0.);
+#44= IFCBUILDINGSTOREY('1Fixture0StoreyL02000',#5,'Level 02',$,$,#14,$,$,.ELEMENT.,3500.);
+
+#50= IFCRELAGGREGATES('1Fixture0Agg0Project0',#5,$,$,#40,(#41));
+#51= IFCRELAGGREGATES('1Fixture0Agg0Site0000',#5,$,$,#41,(#42));
+#52= IFCRELAGGREGATES('1Fixture0Agg0Building',#5,$,$,#42,(#43,#44));
+
+#60= IFCWALL('1Fixture0Wall00000001',#5,'Wall A',$,$,#14,$,$,.SOLIDWALL.);
+#61= IFCWALL('1Fixture0Wall00000002',#5,'Wall B',$,$,#14,$,$,$);
+#62= IFCDOOR('1Fixture0Door00000001',#5,'Door A',$,$,#14,$,$,2100.,900.,.DOOR.,$,$);
+#63= IFCCOLUMN('1Fixture0Column000001',#5,'Column A',$,$,#14,$,$,.COLUMN.);
+#64= IFCSPACE('1Fixture0Space0000001',#5,'Room 1',$,$,#14,$,$,.ELEMENT.,.INTERNAL.,0.);
+
+#70= IFCRELCONTAINEDINSPATIALSTRUCTURE('1Fixture0Cont0L010000',#5,$,$,(#60,#61,#62),#43);
+#71= IFCRELCONTAINEDINSPATIALSTRUCTURE('1Fixture0Cont0L020000',#5,$,$,(#63),#44);
+#72= IFCRELAGGREGATES('1Fixture0Agg0Storey01',#5,$,$,#43,(#64));
+
+#80= IFCPROPERTYSINGLEVALUE('FireRating',$,IFCLABEL('-/60/60'),$);
+#81= IFCPROPERTYSINGLEVALUE('LoadBearing',$,IFCBOOLEAN(.T.),$);
+#82= IFCPROPERTYSET('1Fixture0Pset0Wall001',#5,'SGPset_WallCommon',$,(#80,#81));
+#83= IFCRELDEFINESBYPROPERTIES('1Fixture0Def00Wall001',#5,$,$,(#60),#82);
+
+#90= IFCPROPERTYSINGLEVALUE('NotARealProperty',$,IFCLABEL('x'),$);
+#91= IFCPROPERTYSET('1Fixture0Pset0Door001',#5,'SGPset_DoesNotExist',$,(#90));
+#92= IFCRELDEFINESBYPROPERTIES('1Fixture0Def00Door001',#5,$,$,(#62),#91);
+ENDSEC;
+END-ISO-10303-21;

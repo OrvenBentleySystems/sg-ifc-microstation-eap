@@ -1,0 +1,21 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/microstation/tests/featuretest.py
+      - run: python tools/microstation/tests/stabilitytest.py
+      - run: python tools/microstation/tests/cataloguetest.py
+      - run: python tools/microstation/tests/sourcetest.py
+      - run: python tools/microstation/tests/locatortest.py
+      - run: python tools/validate_catalogue.py
+      - run: python -m compileall -q tools
