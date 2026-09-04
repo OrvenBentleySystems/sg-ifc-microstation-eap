@@ -19,3 +19,5 @@ jobs:
       - run: python tools/microstation/tests/locatortest.py
       - run: python tools/validate_catalogue.py
       - run: python -m compileall -q tools
+      - shell: powershell
+        run: .\tools\microstation\tests\installtest.ps1

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.2
+
+- Added the `IFC_ALLOW_DEPRECATED_SCHEMA=1` deployment setting from Bentley
+  KB0098741.
+- Added an installer switch to disable the compatibility setting.
+- Added repeat-install and uninstall coverage for the setting.
+
 ## 1.3.1
 
 - Added explicit independent-project and non-endorsement notices.

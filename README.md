@@ -36,6 +36,42 @@ C:\ProgramData\Bentley\IFCSG_Checker
 
 Restart MicroStation after installation.
 
+### IFC reference compatibility
+
+Deployment enables:
+
+```text
+IFC_ALLOW_DEPRECATED_SCHEMA = 1
+```
+
+This is the Bentley configuration fix documented in
+[KB0098741](https://bentleysystems.service-now.com/community?id=kb_article_view&sysparm_article=KB0098741)
+for IFC files that cannot be opened, imported, or attached because they use
+deprecated schema definitions.
+
+Bentley documents the fix for OpenBuildings Designer 24.00.03.14. The
+deployment and configuration have also been checked with MicroStation
+26.00.01.65 used for this project. MicroStation's configuration debugger
+confirmed that the effective value is `1`. On other releases, the fix applies
+only if that release recognizes the same Bentley configuration variable. This
+project has not verified every release.
+
+The setting broadens the IFC files accepted by MicroStation. It does not repair
+invalid IFC data and does not make an old schema valid for an IFC+SG
+submission. Open legacy IFC files only from trusted sources. The checker still
+reports a schema failure when the submission schema is not IFC4.
+
+To install without this setting:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File `
+  .\tools\microstation\install_ifcsg_checker.ps1 `
+  -DisableDeprecatedIfcSchemas
+```
+
+See [IFC reference compatibility](docs/IFC_REFERENCE_COMPATIBILITY.md) for
+version evidence, limitations, and rollback.
+
 Uninstall:
 
 ```powershell

@@ -26,6 +26,9 @@
 .PARAMETER Uninstall
     Remove the installed files, configuration and dgnlib.
 
+.PARAMETER DisableDeprecatedIfcSchemas
+    Do not enable Bentley's IFC_ALLOW_DEPRECATED_SCHEMA compatibility setting.
+
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File install_ifcsg_checker.ps1
 
@@ -37,7 +40,8 @@
 param(
     [string]$Target = "C:\ProgramData\Bentley\IFCSG_Checker",
     [string]$MicroStationConfig,
-    [switch]$Uninstall
+    [switch]$Uninstall,
+    [switch]$DisableDeprecatedIfcSchemas
 )
 
 $ErrorActionPreference = "Stop"
@@ -185,6 +189,7 @@ $skip = @("__pycache__", ".lumina_upload_sessions", ".git")
 $blocked = @()
 foreach ($rel in @(
     "data",
+    "docs",
     "schema",
     "tools\build_catalogue.py",
     "tools\microstation",
@@ -283,6 +288,20 @@ Write-Step "wrote $bmpPath"
 
 Write-Head "3. Writing MicroStation configuration"
 $launcher = Join-Path $Target "tools\microstation\run_ifcsg_checker.py"
+$deprecatedIfcSetting = if ($DisableDeprecatedIfcSchemas) {
+    @"
+# Deprecated IFC schema compatibility is disabled.
+# To enable Bentley KB0098741 compatibility, reinstall without
+# -DisableDeprecatedIfcSchemas.
+"@
+} else {
+    @"
+# Bentley KB0098741 compatibility for opening, importing, and referencing
+# trusted IFC files that use deprecated schema definitions.
+# This broadens accepted IFC input. It does not repair or validate an IFC file.
+IFC_ALLOW_DEPRECATED_SCHEMA = 1
+"@
+}
 $cfg = @"
 #----------------------------------------------------------------------
 # IFCSG_Checker.cfg - IFC+SG / CORENET X pre-flight checker
@@ -301,9 +320,17 @@ IFCSG_CHECKER_ICONS     = $Target\icons\
 
 # Make the checker importable by any MicroStation Python script.
 MS_PYTHONPATH           > `$(IFCSG_CHECKER_DIR)tools/microstation/
+
+$deprecatedIfcSetting
 "@
 Set-Content -Path $cfgPath -Value $cfg -Encoding ASCII
 Write-Step "wrote $cfgPath"
+if ($DisableDeprecatedIfcSchemas) {
+    Write-Step "deprecated IFC schema compatibility: disabled"
+} else {
+    Write-Step "deprecated IFC schema compatibility: enabled (Bentley KB0098741)"
+    Write-Warning "  Open only trusted legacy IFC files. The compatibility setting broadens parser input."
+}
 
 Write-Head "4. Creating the GUI DGN library"
 $null = New-Item -ItemType Directory -Force -Path $guiDir

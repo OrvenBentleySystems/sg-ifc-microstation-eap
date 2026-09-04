@@ -90,6 +90,7 @@ $null = New-Item -ItemType Directory -Force -Path $pkg
 
 $packageItems = @(
     "data",
+    "docs",
     "schema",
     "tools\build_catalogue.py",
     "tools\microstation",
@@ -191,6 +192,16 @@ REQUIREMENTS
 MicroStation CONNECT / 2026 or OpenBuildings Designer. No Python installation and
 no third-party packages are needed: the tool runs on MicroStation's embedded
 Python and uses only the standard library.
+
+IFC REFERENCE COMPATIBILITY
+---------------------------
+Deployment enables IFC_ALLOW_DEPRECATED_SCHEMA=1, the compatibility setting
+documented in Bentley KB0098741. It allows trusted IFC files with deprecated
+schema definitions to be opened, imported or referenced. It does not repair an
+invalid IFC or make a legacy schema valid for IFC+SG submission.
+
+To keep Bentley's default restriction, run install_ifcsg_checker.ps1 with
+-DisableDeprecatedIfcSchemas instead of Deploy.bat.
 
 MAPPING EDITION - READ THIS
 ---------------------------
