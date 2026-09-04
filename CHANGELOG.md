@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1
+
+- Added explicit independent-project and non-endorsement notices.
+
 ## 1.3.0
 
 - Consolidated runtime data into `data/catalogue.json`.

@@ -149,6 +149,10 @@ A CORENET X pre-flight checker. Reads an IFC file opened natively or attached as
 a reference, evaluates the IFC+SG rule set, and reports which objects conform.
 Selecting a finding selects the matching geometry in MicroStation.
 
+This is an unofficial plugin for MicroStation created by Orven Fajardo. It is
+not an official Bentley Systems plugin, product, or support offering. Bentley
+Systems does not maintain or endorse it.
+
 Bundled catalogue: mapping edition $edition, $psets property sets.
 
 DEPLOY - 3 STEPS

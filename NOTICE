@@ -1,5 +1,9 @@
 The software source code is licensed under the MIT License.
 
+This is an unofficial plugin for MicroStation created by Orven Fajardo. It is
+not an official Bentley Systems plugin, product, or support offering. Bentley
+Systems does not maintain or endorse this project.
+
 `data/catalogue.json` is a derived interoperability catalogue built from the
 public IFC+SG resources identified in its metadata. Those source materials
 remain subject to the terms and rights of their respective publishers. The

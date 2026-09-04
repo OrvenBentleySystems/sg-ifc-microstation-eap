@@ -3,6 +3,10 @@
 An IFC+SG pre-flight checker for MicroStation 2026 and compatible
 OpenBuildings Designer releases.
 
+This is an unofficial plugin for MicroStation created by Orven Fajardo. It is
+not an official Bentley Systems plugin, product, or support offering. Bentley
+Systems does not maintain or endorse this repository.
+
 The checker reads an IFC file opened or referenced in MicroStation, evaluates
 local validation rules, displays findings, selects matching model elements, and
 exports text, CSV, JSON, HTML, and BCF reports.

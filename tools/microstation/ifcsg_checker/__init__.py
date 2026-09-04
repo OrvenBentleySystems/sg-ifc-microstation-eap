@@ -5,7 +5,7 @@ same findings, in the same order. Nothing resolves by guessing; an unresolvable
 check is reported UNKNOWN, never PASS.
 """
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"
 
 TOOL_NAME = "IFC+SG Checker - CORENET X Pre-flight"
 
