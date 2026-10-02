@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.4.1
+
+- Fixed: required property sets were the union of every identified component
+  for an entity (for example 18 sets on every IfcSpace, including withdrawn
+  ones). They now come from the element's identified component via its
+  subtype token; only the component's main SGPset is an ERROR when missing.
+- Fixed: the workbook's "IFC Sub Types" column was never read, so components
+  had no subtypes. Components now store subtype-to-property-set variants.
+- Fixed: subtype rules read IFC4 attribute positions on IFC2X3 files and
+  reported wrong values; they are now not applicable to non-IFC4 files.
+- Fixed: every IfcBuildingElementProxy was an error, including mapped COP
+  components and curtain-wall parts.
+- Fixed: CLASS.003 warned on every USERDEFINED element without checking it.
+- Fixed: property-set findings on the project, site, building or storey showed
+  no object.
+- Fixed: a property moved to another set was reported as a near miss of an
+  unrelated name.
+- Fixed: MicroStation selection ignored the GlobalId of non-IFC4 references.
+- Added `tools/reconcile_cop_pdf.py` and reconciled COP 4 with the COP 4 PDF:
+  6 properties added, 10 datatype differences accepted.
+- The window shows GlobalId and storey for the selected finding, labels
+  file-level rules, and adds Copy GlobalId.
+
 ## 1.4.0
 
 - Added a COP selector. The window, headless runner (`--cop`, `--list-cops`)

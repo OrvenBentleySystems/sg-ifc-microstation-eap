@@ -89,6 +89,10 @@ STATUS_GLYPH = {
 UI_FONT = "Segoe UI"
 UI_FONT_BOLD = "Segoe UI Semibold"
 
+# Rule categories that judge the file as a whole and so have no object.
+FILE_LEVEL_CATEGORIES = {"schema", "georeferencing", "coordination", "units",
+                         "hygiene", "governance"}
+
 MAX_ROWS_PER_RULE = 2000
 MAX_VISIBLE_FINDINGS = 5000
 FILTER_DELAY_MS = 180
@@ -835,6 +839,8 @@ class CheckerWindow(MstnTk):
         ttk.Button(act, text="Show all", command=self.show_all).pack(side="left")
         ttk.Button(act, text="Clear selection",
                    command=self.clear_selection).pack(side="left", padx=4)
+        ttk.Button(act, text="Copy GlobalId",
+                   command=self.copy_globalid).pack(side="left")
         ttk.Button(act, text="Open HTML report",
                    command=self.open_html).pack(side="right")
         ttk.Button(act, text="Export HTML",
@@ -1356,14 +1362,17 @@ class CheckerWindow(MstnTk):
             node = self.tree.insert(
                 "", "end", text="%s  %s" % (res.rule_id, res.title),
                 values=(STATUS_GLYPH[res.status], "",
-                        "%d finding%s" % (len(res.findings),
-                                          "" if len(res.findings) == 1 else "s"),
+                        ("%d finding%s" % (len(res.findings),
+                                           "" if len(res.findings) == 1 else "s"))
+                        if res.findings or res.category not in FILE_LEVEL_CATEGORIES
+                        else "file-level",
                         res.summary),
                 tags=(res.status, "rulerow"))
             rule_ids = []
             for f in res.findings:
                 rule_ids.extend(f.all_ids)
-            self.row_data[node] = {"kind": "rule", "rule": res.rule_id, "ids": rule_ids}
+            self.row_data[node] = {"kind": "rule", "rule": res.rule_id, "ids": rule_ids,
+                                   "file_level": res.category in FILE_LEVEL_CATEGORIES}
             shown += 1
 
             listed = matching if (row_filters_active or want["status"]) else res.findings
@@ -1377,7 +1386,7 @@ class CheckerWindow(MstnTk):
                             f.message + (("  |  " + f.detail) if f.detail else "")),
                     tags=("finding",))
                 self.row_data[child] = {"kind": "finding", "rule": res.rule_id,
-                                        "ids": f.all_ids}
+                                        "ids": f.all_ids, "finding": f}
                 visible_findings += 1
             if len(listed) > limit:
                 self.tree.insert(node, "end", text="    ...",
@@ -1483,15 +1492,52 @@ class CheckerWindow(MstnTk):
         return out
 
     def on_row_select(self, _event=None):
-        if not self.autoselect.get():
-            return
         items = self.tree.selection()
         if len(items) != 1:
             return
         data = self.row_data.get(items[0])
-        if not data or data["kind"] != "finding":
+        if not data:
+            return
+        if data["kind"] == "finding":
+            self.set_status(self.describe_finding(data["finding"]))
+        elif data.get("file_level"):
+            self.set_status("%s is a file-level check: it concerns the IFC file as a "
+                            "whole (header, georeferencing, units), not an object."
+                            % data["rule"])
+        if not self.autoselect.get() or data["kind"] != "finding":
             return
         self.select_current(quiet=True)
+
+    def describe_finding(self, finding):
+        """Where an object is, for use when MicroStation cannot select it."""
+        if finding.ifc_id is None:
+            return "%s: file-level finding, no object." % finding.rule_id
+        parts = ["#%s %s" % (finding.ifc_id, finding.entity)]
+        if finding.name:
+            parts.append("'%s'" % finding.name)
+        if finding.guid:
+            parts.append("GlobalId %s" % finding.guid)
+        ctx = getattr(self.report, "ctx", None)
+        if ctx is not None:
+            parts.append("storey %s" % ctx.storey_label(finding.ifc_id))
+        extra = len(finding.all_ids) - 1
+        if extra > 0:
+            parts.append("+%d more affected element(s)" % extra)
+        return "  \u00b7  ".join(parts)
+
+    def copy_globalid(self):
+        guids = []
+        for item in self.tree.selection():
+            data = self.row_data.get(item) or {}
+            finding = data.get("finding")
+            if finding is not None and finding.guid and finding.guid not in guids:
+                guids.append(finding.guid)
+        if not guids:
+            self.set_status("Select one or more object rows first.")
+            return
+        self.clipboard_clear()
+        self.clipboard_append("\n".join(guids))
+        self.set_status("Copied %d GlobalId(s) to the clipboard." % len(guids))
 
     def on_row_activate(self, _event=None):
         self.select_current(quiet=True)

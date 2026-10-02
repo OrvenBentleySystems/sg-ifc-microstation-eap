@@ -129,6 +129,11 @@
               "unit": { "type": ["string", "null"] },
               "required": { "type": "boolean" },
               "controlled": { "type": "boolean" },
+              "alt_types": {
+                "description": "Datatypes the COP document gives where it differs from the workbook; also accepted.",
+                "type": "array", "items": { "type": "string" }
+              },
+              "source": { "type": "string" },
               "enum_values": { "type": "array", "items": { "type": "string" } },
               "example_values": { "type": "array", "items": { "type": "string" } }
             }

@@ -414,6 +414,7 @@ foreach ($rel in @(
     "dgnlib",
     "tools\build_catalogue.py",
     "tools\validate_catalogue.py",
+    "tools\reconcile_cop_pdf.py",
     "tools\microstation",
     "Deploy.bat",
     "Uninstall.bat",

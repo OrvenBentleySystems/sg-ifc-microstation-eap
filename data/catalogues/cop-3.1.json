@@ -39,7 +39,12 @@
       "datatype_conflicts": 0
     },
     "cop_title": "CORENET X Code of Practice 3.1 Edition",
-    "cop_published": "2025-12"
+    "cop_published": "2025-12",
+    "identified_components_source": {
+      "sha256": "a5babc13c18932072b7489c264bd48b05adcc86b14f750ef60387403cebf0d9a",
+      "name": "industry-mapping-4-dec-2025.xlsx",
+      "note": "Re-extracted with subtype-to-property-set variants (importer 1.4.1). BCA republished this workbook under the same name; this copy differs from the one the property sets were built from."
+    }
   },
   "property_sets": [
     {
@@ -18880,7 +18885,9 @@
     {
       "name": "Accessible Route",
       "entity": "IfcSpace",
-      "subtypes": [],
+      "subtypes": [
+        "*ACCESSIBLEROUTE"
+      ],
       "property_sets": [
         "SGPset_SpaceDimension",
         "SGPset_Space"
@@ -18890,6 +18897,17 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*ACCESSIBLEROUTE"
+          ],
+          "property_sets": [
+            "SGPset_SpaceDimension",
+            "SGPset_Space"
+          ]
+        }
       ]
     },
     {
@@ -18908,12 +18926,26 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_Beam",
+            "SGPset_BeamReinforcement",
+            "SGPset_BeamDimension",
+            "SGPset_SteelConnection",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Borehole",
       "entity": "IfcBuildingElementProxy",
-      "subtypes": [],
+      "subtypes": [
+        "*BOREHOLE"
+      ],
       "property_sets": [
         "SGPset_BuildingElementProxyDimension"
       ],
@@ -18922,12 +18954,24 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*BOREHOLE"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxyDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Breeching Inlet",
       "entity": "IfcFireSuppressionTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "BREECHINGINLET"
+      ],
       "property_sets": [
         "SGPset_FireSuppressionTerminal"
       ],
@@ -18936,12 +18980,24 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "BREECHINGINLET"
+          ],
+          "property_sets": [
+            "SGPset_FireSuppressionTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Ceiling",
       "entity": "IfcCovering",
-      "subtypes": [],
+      "subtypes": [
+        "CEILING"
+      ],
       "property_sets": [
         "Pset_CoveringCommon",
         "SGPset_Material"
@@ -18951,6 +19007,17 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "CEILING"
+          ],
+          "property_sets": [
+            "Pset_CoveringCommon",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
@@ -18971,12 +19038,28 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_PrecastConcreteElementGeneral",
+            "SGPset_ColumnDimension",
+            "SGPset_SteelConnection",
+            "SGPset_Column",
+            "SGPset_ColumnReinforcement",
+            "SGPset_Material",
+            "SGPset_ColumnStructuralLoad"
+          ]
+        }
       ]
     },
     {
       "name": "Control Element",
       "entity": "IfcUnitaryControlElement",
-      "subtypes": [],
+      "subtypes": [
+        "CONTROLPANEL"
+      ],
       "property_sets": [
         "SGPset_UnitaryControlElement"
       ],
@@ -18986,12 +19069,32 @@
       "agencies": [
         "NEA",
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "CONTROLPANEL"
+          ],
+          "property_sets": [
+            "SGPset_UnitaryControlElement"
+          ]
+        }
       ]
     },
     {
       "name": "Culvert/ Drains",
       "entity": "IfcCivilElement",
-      "subtypes": [],
+      "subtypes": [
+        "*COMMONDRAIN",
+        "*CROSSCULVERT",
+        "*CULVERT",
+        "*ENTRANCECULVERT",
+        "*EXTERNALDRAIN",
+        "*INTERNALDRAIN",
+        "*OUTLETDRAIN",
+        "*ROADSIDEDRAIN",
+        "TRENCH"
+      ],
       "property_sets": [
         "SGPset_CivilElementDimension",
         "SGPset_CivilElement",
@@ -19004,12 +19107,36 @@
       "agencies": [
         "PUB",
         "LTA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*COMMONDRAIN",
+            "*CROSSCULVERT",
+            "*CULVERT",
+            "*ENTRANCECULVERT",
+            "*EXTERNALDRAIN",
+            "*INTERNALDRAIN",
+            "*OUTLETDRAIN",
+            "*ROADSIDEDRAIN",
+            "TRENCH"
+          ],
+          "property_sets": [
+            "SGPset_CivilElementDimension",
+            "SGPset_CivilElement",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Damper",
       "entity": "IfcDamper",
-      "subtypes": [],
+      "subtypes": [
+        "SMOKEDAMPER",
+        "FIRESMOKEDAMPER",
+        "FIREDAMPER"
+      ],
       "property_sets": [
         "SGPset_Damper"
       ],
@@ -19018,12 +19145,41 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "SMOKEDAMPER"
+          ],
+          "property_sets": [
+            "SGPset_Damper"
+          ]
+        },
+        {
+          "subtypes": [
+            "FIRESMOKEDAMPER"
+          ],
+          "property_sets": [
+            "SGPset_Damper"
+          ]
+        },
+        {
+          "subtypes": [
+            "FIREDAMPER"
+          ],
+          "property_sets": [
+            "SGPset_Damper"
+          ]
+        }
       ]
     },
     {
       "name": "Distribution Chamber",
       "entity": "IfcCovering",
-      "subtypes": [],
+      "subtypes": [
+        "*PWCSINSPECTIONCHAMBERCOVER",
+        "*PWCSMANHOLECOVER"
+      ],
       "property_sets": [
         "SGPset_Covering"
       ],
@@ -19032,12 +19188,40 @@
       ],
       "agencies": [
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*PWCSINSPECTIONCHAMBERCOVER"
+          ],
+          "property_sets": [
+            "SGPset_Covering"
+          ]
+        },
+        {
+          "subtypes": [
+            "*PWCSMANHOLECOVER"
+          ],
+          "property_sets": [
+            "SGPset_Covering"
+          ]
+        }
       ]
     },
     {
       "name": "Distribution Chamber",
       "entity": "IfcDistributionChamberElement",
-      "subtypes": [],
+      "subtypes": [
+        "INSPECTIONCHAMBER",
+        "MANHOLE",
+        "METERCHAMBER",
+        "*PWCSINSPECTIONCHAMBER",
+        "*PWCSMANHOLE",
+        "*SCREENCHAMBER",
+        "*SAMPLINGSUMP",
+        "SUMP",
+        "TRENCH"
+      ],
       "property_sets": [
         "SGPset_DistributionChamberElementDimension",
         "SGPset_DistributionChamberElement",
@@ -19048,12 +19232,37 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "INSPECTIONCHAMBER",
+            "MANHOLE",
+            "METERCHAMBER",
+            "*PWCSINSPECTIONCHAMBER",
+            "*PWCSMANHOLE",
+            "*SCREENCHAMBER",
+            "*SAMPLINGSUMP",
+            "SUMP",
+            "TRENCH"
+          ],
+          "property_sets": [
+            "SGPset_DistributionChamberElementDimension",
+            "SGPset_DistributionChamberElement",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Door",
       "entity": "IfcDoor",
-      "subtypes": [],
+      "subtypes": [
+        "DOOR",
+        "GATE",
+        "*BLASTDOOR",
+        "*ROLLERSHUTTER"
+      ],
       "property_sets": [
         "SGPset_DoorDimension",
         "SGPset_Door",
@@ -19067,12 +19276,30 @@
         "SCDF",
         "NEA",
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "DOOR",
+            "GATE",
+            "*BLASTDOOR",
+            "*ROLLERSHUTTER"
+          ],
+          "property_sets": [
+            "SGPset_DoorDimension",
+            "SGPset_Door",
+            "Pset_DoorCommon",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Earthworks",
       "entity": "IfcGeographicElement",
-      "subtypes": [],
+      "subtypes": [
+        "TERRAIN"
+      ],
       "property_sets": [
         "SGPset_GeographicElementDimension",
         "SGPset_GeographicElement"
@@ -19082,12 +19309,30 @@
       ],
       "agencies": [
         "URA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "TERRAIN"
+          ],
+          "property_sets": [
+            "SGPset_GeographicElementDimension",
+            "SGPset_GeographicElement"
+          ]
+        }
       ]
     },
     {
       "name": "Finishes",
       "entity": "IfcCovering",
-      "subtypes": [],
+      "subtypes": [
+        "CLADDING",
+        "*FIRECURTAIN",
+        "FLOORING",
+        "*PIPESLEEVE",
+        "*SOFFIT",
+        "*TACTILETILE"
+      ],
       "property_sets": [
         "Pset_CoveringCommon",
         "SGPset_Material"
@@ -19097,12 +19342,30 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "CLADDING",
+            "*FIRECURTAIN",
+            "FLOORING",
+            "*PIPESLEEVE",
+            "*SOFFIT",
+            "*TACTILETILE"
+          ],
+          "property_sets": [
+            "Pset_CoveringCommon",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Fire Access Opening",
       "entity": "IfcDoor",
-      "subtypes": [],
+      "subtypes": [
+        "*OPENING"
+      ],
       "property_sets": [
         "SGPset_Door"
       ],
@@ -19111,12 +19374,24 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*OPENING"
+          ],
+          "property_sets": [
+            "SGPset_Door"
+          ]
+        }
       ]
     },
     {
       "name": "Fire Access Opening",
       "entity": "IfcOpeningElement",
-      "subtypes": [],
+      "subtypes": [
+        "OPENING"
+      ],
       "property_sets": [
         "SGPset_OpeningElement"
       ],
@@ -19125,12 +19400,24 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "OPENING"
+          ],
+          "property_sets": [
+            "SGPset_OpeningElement"
+          ]
+        }
       ]
     },
     {
       "name": "Fire Access Opening",
       "entity": "IfcWindow",
-      "subtypes": [],
+      "subtypes": [
+        "*OPENING"
+      ],
       "property_sets": [
         "SGPset_Window"
       ],
@@ -19139,12 +19426,24 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*OPENING"
+          ],
+          "property_sets": [
+            "SGPset_Window"
+          ]
+        }
       ]
     },
     {
       "name": "Fire Extinguisher",
       "entity": "IfcBuildingElementProxy",
-      "subtypes": [],
+      "subtypes": [
+        "*PORTABLEFIREEXTINGUISHER"
+      ],
       "property_sets": [
         "SGPset_BuildingElementProxy"
       ],
@@ -19153,12 +19452,24 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*PORTABLEFIREEXTINGUISHER"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxy"
+          ]
+        }
       ]
     },
     {
       "name": "Fire Hydrant",
       "entity": "IfcFireSuppressionTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "FIREHYDRANT"
+      ],
       "property_sets": [
         "SGPset_FireSuppressionTerminal"
       ],
@@ -19167,12 +19478,25 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "FIREHYDRANT"
+          ],
+          "property_sets": [
+            "SGPset_FireSuppressionTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Foam Inlet / Outlet",
       "entity": "IfcFireSuppressionTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "*FOAMINLET",
+        "*FOAMOUTLET"
+      ],
       "property_sets": [
         "SGPset_FireSuppressionTerminal"
       ],
@@ -19181,6 +19505,17 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*FOAMINLET",
+            "*FOAMOUTLET"
+          ],
+          "property_sets": [
+            "SGPset_FireSuppressionTerminal"
+          ]
+        }
       ]
     },
     {
@@ -19199,12 +19534,26 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_FootingReinforcement",
+            "SGPset_FootingDimension",
+            "SGPset_Footing",
+            "SGPset_Material",
+            "SGPset_FoundationStructuralLoad"
+          ]
+        }
       ]
     },
     {
       "name": "Footpath",
       "entity": "IfcCivilElement",
-      "subtypes": [],
+      "subtypes": [
+        "*FOOTPATH"
+      ],
       "property_sets": [
         "SGPset_Material",
         "SGPset_CivilElementDimension"
@@ -19214,12 +19563,25 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*FOOTPATH"
+          ],
+          "property_sets": [
+            "SGPset_Material",
+            "SGPset_CivilElementDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Grating",
       "entity": "IfcDiscreteAccessory",
-      "subtypes": [],
+      "subtypes": [
+        "*GRATING"
+      ],
       "property_sets": [
         "SGPset_DiscreteAccessory"
       ],
@@ -19228,12 +19590,24 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*GRATING"
+          ],
+          "property_sets": [
+            "SGPset_DiscreteAccessory"
+          ]
+        }
       ]
     },
     {
       "name": "Green Verge",
       "entity": "IfcGeographicElement",
-      "subtypes": [],
+      "subtypes": [
+        "*GREENVERGES"
+      ],
       "property_sets": [
         "SGPset_GeographicElement",
         "SGPset_GeographicElementDimension"
@@ -19243,12 +19617,25 @@
       ],
       "agencies": [
         "NPARKS"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*GREENVERGES"
+          ],
+          "property_sets": [
+            "SGPset_GeographicElement",
+            "SGPset_GeographicElementDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Green Verge",
       "entity": "IfcSpace",
-      "subtypes": [],
+      "subtypes": [
+        "*AREA_GFA"
+      ],
       "property_sets": [
         "SGPset_SpaceArea_Landscape"
       ],
@@ -19257,12 +19644,24 @@
       ],
       "agencies": [
         "NPARKS"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*AREA_GFA"
+          ],
+          "property_sets": [
+            "SGPset_SpaceArea_Landscape"
+          ]
+        }
       ]
     },
     {
       "name": "Gutter",
       "entity": "IfcCivilElement",
-      "subtypes": [],
+      "subtypes": [
+        "*GUTTER"
+      ],
       "property_sets": [
         "SGPset_CivilElement",
         "SGPset_CivilElementDimension"
@@ -19272,12 +19671,25 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*GUTTER"
+          ],
+          "property_sets": [
+            "SGPset_CivilElement",
+            "SGPset_CivilElementDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Gutter",
       "entity": "IfcPipeSegment",
-      "subtypes": [],
+      "subtypes": [
+        "GUTTER"
+      ],
       "property_sets": [
         "SGPset_PipeSegment"
       ],
@@ -19286,12 +19698,25 @@
       ],
       "agencies": [
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "GUTTER"
+          ],
+          "property_sets": [
+            "SGPset_PipeSegment"
+          ]
+        }
       ]
     },
     {
       "name": "Hose Reel",
       "entity": "IfcFireSuppressionTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "HOSEREEL",
+        "*STANDBYFIREHOSE"
+      ],
       "property_sets": [
         "SGPset_FireSuppressionTerminal"
       ],
@@ -19300,12 +19725,26 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "HOSEREEL",
+            "*STANDBYFIREHOSE"
+          ],
+          "property_sets": [
+            "SGPset_FireSuppressionTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Household Shelter",
       "entity": "IfcSpace",
-      "subtypes": [],
+      "subtypes": [
+        "SPACE",
+        "*AREA_GFA"
+      ],
       "property_sets": [
         "SGPset_Space",
         "SGPset_SpaceDimension",
@@ -19316,6 +19755,25 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "SPACE"
+          ],
+          "property_sets": [
+            "SGPset_Space",
+            "SGPset_SpaceDimension"
+          ]
+        },
+        {
+          "subtypes": [
+            "*AREA_GFA"
+          ],
+          "property_sets": [
+            "SGPset_SpaceArea_GFA"
+          ]
+        }
       ]
     },
     {
@@ -19331,12 +19789,24 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_Wall",
+            "SGPset_WallDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Interceptor",
       "entity": "IfcInterceptor",
-      "subtypes": [],
+      "subtypes": [
+        "GREASE",
+        "OIL"
+      ],
       "property_sets": [
         "SGPset_Interceptor",
         "SGPset_InterceptorDimension"
@@ -19346,12 +19816,28 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "GREASE",
+            "OIL"
+          ],
+          "property_sets": [
+            "SGPset_Interceptor",
+            "SGPset_InterceptorDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Landscape Plants",
       "entity": "IfcGeographicElement",
-      "subtypes": [],
+      "subtypes": [
+        "*LANDSCAPE_TREE",
+        "*LANDSCAPE_PALM",
+        "*LANDSCAPE_HEDGE"
+      ],
       "property_sets": [
         "SGPset_GeographicElementDimension",
         "SGPset_GeographicElement"
@@ -19361,12 +19847,46 @@
       ],
       "agencies": [
         "NPARKS"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*LANDSCAPE_TREE",
+            "*LANDSCAPE_PALM"
+          ],
+          "property_sets": [
+            "SGPset_GeographicElementDimension",
+            "SGPset_GeographicElement"
+          ]
+        },
+        {
+          "subtypes": [
+            "*LANDSCAPE_HEDGE"
+          ],
+          "property_sets": [
+            "SGPset_GeographicElement"
+          ]
+        },
+        {
+          "subtypes": [
+            "*LANDSCAPE_TREE",
+            "*LANDSCAPE_PALM",
+            "*LANDSCAPE_HEDGE"
+          ],
+          "property_sets": [
+            "SGPset_GeographicElementDimension",
+            "SGPset_GeographicElement"
+          ]
+        }
       ]
     },
     {
       "name": "Lift",
       "entity": "IfcTransportElement",
-      "subtypes": [],
+      "subtypes": [
+        "*LIFT",
+        "*CARLIFT"
+      ],
       "property_sets": [
         "SGPset_TransportElement",
         "SGPset_TransportElementDimension"
@@ -19378,12 +19898,38 @@
         "BCA",
         "LTA",
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*LIFT"
+          ],
+          "property_sets": [
+            "SGPset_TransportElement",
+            "SGPset_TransportElementDimension"
+          ]
+        },
+        {
+          "subtypes": [
+            "*CARLIFT"
+          ],
+          "property_sets": [
+            "SGPset_TransportElementDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Parking Lot",
       "entity": "IfcBuildingElementProxy",
-      "subtypes": [],
+      "subtypes": [
+        "*CARLOT",
+        "*MOTORCYCLELOT",
+        "*LORRYLOT",
+        "*COACHLOT",
+        "*ARTICULATEDVEHICLELOT",
+        "*BICYCLELOT"
+      ],
       "property_sets": [
         "SGPset_BuildingElementProxy",
         "SGPset_BuildingElementProxyDimension"
@@ -19395,12 +19941,69 @@
         "BCA",
         "LTA",
         "NPARKS"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*CARLOT"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxy"
+          ]
+        },
+        {
+          "subtypes": [
+            "*CARLOT",
+            "*MOTORCYCLELOT",
+            "*LORRYLOT",
+            "*COACHLOT",
+            "*ARTICULATEDVEHICLELOT",
+            "*BICYCLELOT"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxyDimension",
+            "SGPset_BuildingElementProxy"
+          ]
+        },
+        {
+          "subtypes": [
+            "*CARLOT",
+            "*MOTORCYCLELOT",
+            "*LORRYLOT",
+            "*COACHLOT",
+            "*ARTICULATEDVEHICLELOT"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxy"
+          ]
+        },
+        {
+          "subtypes": [
+            "*LORRYLOT",
+            "*COACHLOT",
+            "*ARTICULATEDVEHICLELOT"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxy"
+          ]
+        },
+        {
+          "subtypes": [
+            "*BICYCLELOT"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxy"
+          ]
+        }
       ]
     },
     {
       "name": "Parking Lot (relevant elements)",
       "entity": "IfcBuildingElementProxy",
-      "subtypes": [],
+      "subtypes": [
+        "*HOLDINGBAY",
+        "*QUEUINGSPACE"
+      ],
       "property_sets": [
         "SGPset_BuildingElementProxyDimension"
       ],
@@ -19409,12 +20012,33 @@
       ],
       "agencies": [
         "LTA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*HOLDINGBAY"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxyDimension"
+          ]
+        },
+        {
+          "subtypes": [
+            "*QUEUINGSPACE"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxyDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Parking Lot (relevant elements)",
       "entity": "IfcSpace",
-      "subtypes": [],
+      "subtypes": [
+        "SPACE",
+        "*AREA_GFA"
+      ],
       "property_sets": [
         "SGPset_Space",
         "SGPset_SpaceDimension",
@@ -19427,6 +20051,25 @@
         "LTA",
         "BCA",
         "URA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "SPACE"
+          ],
+          "property_sets": [
+            "SGPset_Space",
+            "SGPset_SpaceDimension"
+          ]
+        },
+        {
+          "subtypes": [
+            "*AREA_GFA"
+          ],
+          "property_sets": [
+            "SGPset_SpaceArea_GFA"
+          ]
+        }
       ]
     },
     {
@@ -19441,6 +20084,14 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_PilingDesignParameter"
+          ]
+        }
       ]
     },
     {
@@ -19459,12 +20110,27 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_Pile",
+            "SGPset_PileDimension",
+            "SGPset_PileStructuralLoad",
+            "SGPset_PileReinforcement",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Pipes/ Ducts",
       "entity": "IfcAirTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "GRILLE",
+        "LOUVRE"
+      ],
       "property_sets": [
         "SGPset_AirTerminal"
       ],
@@ -19473,6 +20139,17 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "GRILLE",
+            "LOUVRE"
+          ],
+          "property_sets": [
+            "SGPset_AirTerminal"
+          ]
+        }
       ]
     },
     {
@@ -19488,6 +20165,14 @@
       "agencies": [
         "BCA",
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_DuctFitting"
+          ]
+        }
       ]
     },
     {
@@ -19503,12 +20188,31 @@
       "agencies": [
         "BCA",
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_DuctSegment"
+          ]
+        }
       ]
     },
     {
       "name": "Pipes/ Ducts",
       "entity": "IfcPipeFitting",
-      "subtypes": [],
+      "subtypes": [
+        "BEND",
+        "*DRAINCHANNELBEND",
+        "ENTRY",
+        "EXIT",
+        "*FLANGEADAPTOR",
+        "*FLEXIBLECOUPLING",
+        "JUNCTION",
+        "OBSTRUCTION",
+        "*PIPESILENCER",
+        "*SHORTPIECE"
+      ],
       "property_sets": [
         "SGPset_PipeFittingDimension",
         "SGPset_PipeFitting"
@@ -19519,12 +20223,35 @@
       "agencies": [
         "PUB",
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "BEND",
+            "*DRAINCHANNELBEND",
+            "ENTRY",
+            "EXIT",
+            "*FLANGEADAPTOR",
+            "*FLEXIBLECOUPLING",
+            "JUNCTION",
+            "OBSTRUCTION",
+            "*PIPESILENCER",
+            "*SHORTPIECE"
+          ],
+          "property_sets": [
+            "SGPset_PipeFittingDimension",
+            "SGPset_PipeFitting"
+          ]
+        }
       ]
     },
     {
       "name": "Pipes/ Ducts",
       "entity": "IfcPipeSegment",
-      "subtypes": [],
+      "subtypes": [
+        "RIGIDSEGMENT",
+        "FLEXIBLESEGMENT"
+      ],
       "property_sets": [
         "SGPset_PipeSegment",
         "SGPset_Material",
@@ -19538,12 +20265,27 @@
         "NPARKS",
         "PUB",
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "RIGIDSEGMENT",
+            "FLEXIBLESEGMENT"
+          ],
+          "property_sets": [
+            "SGPset_PipeSegment",
+            "SGPset_Material",
+            "SGPset_PipeSegmentDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Planting Areas",
       "entity": "IfcGeographicElement",
-      "subtypes": [],
+      "subtypes": [
+        "*PLANTINGAREAS"
+      ],
       "property_sets": [
         "SGPset_GeographicElementDimension",
         "SGPset_GeographicElement"
@@ -19553,12 +20295,28 @@
       ],
       "agencies": [
         "NPARKS"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*PLANTINGAREAS"
+          ],
+          "property_sets": [
+            "SGPset_GeographicElementDimension",
+            "SGPset_GeographicElement"
+          ]
+        }
       ]
     },
     {
       "name": "Pollution Control",
       "entity": "IfcUnitaryEquipment",
-      "subtypes": [],
+      "subtypes": [
+        "*AIRIMPURITIESSENSOR",
+        "*FUELBURNINGEQUIPMENT",
+        "*INCINERATOR",
+        "*POLLUTIONCONTROLEQUIPMENT"
+      ],
       "property_sets": [
         "SGPset_UnitaryEquipment"
       ],
@@ -19567,12 +20325,27 @@
       ],
       "agencies": [
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*AIRIMPURITIESSENSOR",
+            "*FUELBURNINGEQUIPMENT",
+            "*INCINERATOR",
+            "*POLLUTIONCONTROLEQUIPMENT"
+          ],
+          "property_sets": [
+            "SGPset_UnitaryEquipment"
+          ]
+        }
       ]
     },
     {
       "name": "Prefabricated Building Systems and MEP Components",
       "entity": "IfcDiscreteAccessory",
-      "subtypes": [],
+      "subtypes": [
+        "*PIPESUPPORT"
+      ],
       "property_sets": [
         "SGPset_DiscreteAccessory"
       ],
@@ -19581,6 +20354,16 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*PIPESUPPORT"
+          ],
+          "property_sets": [
+            "SGPset_DiscreteAccessory"
+          ]
+        }
       ]
     },
     {
@@ -19595,12 +20378,23 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_DuctFitting"
+          ]
+        }
       ]
     },
     {
       "name": "Prefabricated Building Systems and MEP Components",
       "entity": "IfcDuctSegment",
-      "subtypes": [],
+      "subtypes": [
+        "RIGIDSEGMENT",
+        "FLEXIBLESEGMENT"
+      ],
       "property_sets": [
         "SGPset_DuctSegment"
       ],
@@ -19609,6 +20403,17 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "RIGIDSEGMENT",
+            "FLEXIBLESEGMENT"
+          ],
+          "property_sets": [
+            "SGPset_DuctSegment"
+          ]
+        }
       ]
     },
     {
@@ -19623,12 +20428,23 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_PipeFitting"
+          ]
+        }
       ]
     },
     {
       "name": "Prefabricated Building Systems and MEP Components",
       "entity": "IfcPipeSegment",
-      "subtypes": [],
+      "subtypes": [
+        "RIGIDSEGMENT",
+        "FLEXIBLESEGMENT"
+      ],
       "property_sets": [
         "SGPset_PipeSegment"
       ],
@@ -19637,6 +20453,17 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "RIGIDSEGMENT",
+            "FLEXIBLESEGMENT"
+          ],
+          "property_sets": [
+            "SGPset_PipeSegment"
+          ]
+        }
       ]
     },
     {
@@ -19652,12 +20479,27 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_Slab",
+            "SGPset_SlabDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Prefabricated Building Systems and MEP Components",
       "entity": "IfcSpace",
-      "subtypes": [],
+      "subtypes": [
+        "*PREFABRICATEDBATHROOMUNIT",
+        "*PREFABRICATEDMEPHORIZONTALMODULE",
+        "*PREFABRICATEDMEPPLANTMODULE",
+        "*PREFABRICATEDMEPVERTICALMODULE",
+        "*PREFABRICATEDPUMPSKID"
+      ],
       "property_sets": [
         "SGPset_Space",
         "SGPset_SpaceDimension"
@@ -19667,6 +20509,21 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*PREFABRICATEDBATHROOMUNIT",
+            "*PREFABRICATEDMEPHORIZONTALMODULE",
+            "*PREFABRICATEDMEPPLANTMODULE",
+            "*PREFABRICATEDMEPVERTICALMODULE",
+            "*PREFABRICATEDPUMPSKID"
+          ],
+          "property_sets": [
+            "SGPset_Space",
+            "SGPset_SpaceDimension"
+          ]
+        }
       ]
     },
     {
@@ -19682,6 +20539,15 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_Wall",
+            "SGPset_WallDimension"
+          ]
+        }
       ]
     },
     {
@@ -19696,12 +20562,22 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_Building"
+          ]
+        }
       ]
     },
     {
       "name": "Pump",
       "entity": "IfcPump",
-      "subtypes": [],
+      "subtypes": [
+        "SUMPPUMP"
+      ],
       "property_sets": [
         "SGPset_Pump"
       ],
@@ -19710,12 +20586,25 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "SUMPPUMP"
+          ],
+          "property_sets": [
+            "SGPset_Pump"
+          ]
+        }
       ]
     },
     {
       "name": "Railing",
       "entity": "IfcRailing",
-      "subtypes": [],
+      "subtypes": [
+        "*BOLLARD",
+        "GUARDRAIL"
+      ],
       "property_sets": [
         "SGPset_RailingDimension",
         "SGPset_Material",
@@ -19727,12 +20616,29 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*BOLLARD",
+            "GUARDRAIL"
+          ],
+          "property_sets": [
+            "SGPset_RailingDimension",
+            "SGPset_Material",
+            "SGPset_Railing"
+          ]
+        }
       ]
     },
     {
       "name": "Ramp",
       "entity": "IfcRamp",
-      "subtypes": [],
+      "subtypes": [
+        "*CURVEDRAMP",
+        "*FLAREDKERBRAMP",
+        "STRAIGHT_RUN_RAMP"
+      ],
       "property_sets": [
         "SGPset_RampDimension",
         "SGPset_Ramp",
@@ -19744,12 +20650,32 @@
       "agencies": [
         "BCA",
         "LTA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*CURVEDRAMP",
+            "*FLAREDKERBRAMP",
+            "STRAIGHT_RUN_RAMP"
+          ],
+          "property_sets": [
+            "SGPset_RampDimension",
+            "SGPset_Ramp",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Refuse Chute / Recyclables Chute",
       "entity": "IfcDoor",
-      "subtypes": [],
+      "subtypes": [
+        "*ACCESSHATCH",
+        "*RECYCLABLESCHUTEACCESSPANEL",
+        "*RECYCLABLESCHUTEHOPPER",
+        "*REFUSECHUTEACCESSPANEL",
+        "*REFUSECHUTEHOPPER"
+      ],
       "property_sets": [
         "SGPset_Door",
         "Pset_DoorCommon",
@@ -19761,12 +20687,31 @@
       ],
       "agencies": [
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*ACCESSHATCH",
+            "*RECYCLABLESCHUTEACCESSPANEL",
+            "*RECYCLABLESCHUTEHOPPER",
+            "*REFUSECHUTEACCESSPANEL",
+            "*REFUSECHUTEHOPPER"
+          ],
+          "property_sets": [
+            "SGPset_Door",
+            "Pset_DoorCommon",
+            "SGPset_DoorDimension",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Refuse Chute / Recyclables Chute",
       "entity": "IfcSpace",
-      "subtypes": [],
+      "subtypes": [
+        "SPACE"
+      ],
       "property_sets": [
         "SGPset_Space",
         "SGPset_SpaceDimension"
@@ -19776,12 +20721,29 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "SPACE"
+          ],
+          "property_sets": [
+            "SGPset_Space",
+            "SGPset_SpaceDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Refuse Chute / Recyclables Chute",
       "entity": "IfcTank",
-      "subtypes": [],
+      "subtypes": [
+        "*REFUSECONTAINER",
+        "*REFUSECOMPACTOR",
+        "*RECYCLABLECONTAINER",
+        "*RECYCLABLECOMPACTOR",
+        "*REFUSEHANDLINGEQUIPMENT"
+      ],
       "property_sets": [
         "SGPset_Tank",
         "Pset_TankTypeCommon",
@@ -19792,12 +20754,30 @@
       ],
       "agencies": [
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*REFUSECONTAINER",
+            "*REFUSECOMPACTOR",
+            "*RECYCLABLECONTAINER",
+            "*RECYCLABLECOMPACTOR",
+            "*REFUSEHANDLINGEQUIPMENT"
+          ],
+          "property_sets": [
+            "SGPset_Tank",
+            "Pset_TankTypeCommon",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Refuse Chute / Recyclables Chute",
       "entity": "IfcWall",
-      "subtypes": [],
+      "subtypes": [
+        "*REFUSECHUTE"
+      ],
       "property_sets": [
         "SGPset_Wall"
       ],
@@ -19806,12 +20786,25 @@
       ],
       "agencies": [
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*REFUSECHUTE"
+          ],
+          "property_sets": [
+            "SGPset_Wall"
+          ]
+        }
       ]
     },
     {
       "name": "Refuse Handling Equipment",
       "entity": "IfcTank",
-      "subtypes": [],
+      "subtypes": [
+        "*RECYCLINGBIN",
+        "*REFUSEBIN"
+      ],
       "property_sets": [
         "SGPset_Tank"
       ],
@@ -19820,12 +20813,32 @@
       ],
       "agencies": [
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*RECYCLINGBIN"
+          ],
+          "property_sets": [
+            "SGPset_Tank"
+          ]
+        },
+        {
+          "subtypes": [
+            "*REFUSEBIN"
+          ],
+          "property_sets": [
+            "SGPset_Tank"
+          ]
+        }
       ]
     },
     {
       "name": "Road",
       "entity": "IfcBuildingElementProxy",
-      "subtypes": [],
+      "subtypes": [
+        "*ACCESSPOINT"
+      ],
       "property_sets": [
         "SGPset_BuildingElementProxyDimension",
         "SGPset_BuildingElementProxy"
@@ -19835,12 +20848,27 @@
       ],
       "agencies": [
         "LTA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*ACCESSPOINT"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxyDimension",
+            "SGPset_BuildingElementProxy"
+          ]
+        }
       ]
     },
     {
       "name": "Road",
       "entity": "IfcCivilElement",
-      "subtypes": [],
+      "subtypes": [
+        "*DRIVEWAY",
+        "*CARRIAGEWAY",
+        "*ROADKERB"
+      ],
       "property_sets": [
         "SGPset_CivilElement",
         "SGPset_Material",
@@ -19852,12 +20880,47 @@
       "agencies": [
         "SCDF",
         "LTA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*DRIVEWAY"
+          ],
+          "property_sets": [
+            "SGPset_CivilElement",
+            "SGPset_Material"
+          ]
+        },
+        {
+          "subtypes": [
+            "*CARRIAGEWAY"
+          ],
+          "property_sets": [
+            "SGPset_CivilElement",
+            "SGPset_Material"
+          ]
+        },
+        {
+          "subtypes": [
+            "*ROADKERB"
+          ],
+          "property_sets": [
+            "SGPset_CivilElement",
+            "SGPset_CivilElementDimension",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Road",
       "entity": "IfcSpace",
-      "subtypes": [],
+      "subtypes": [
+        "*FIREENGINEACCESSROAD",
+        "*FIREENGINEACCESSWAY",
+        "*PARKINGACCESSWAY",
+        "*VEHICULARSERVICEROAD"
+      ],
       "property_sets": [
         "SGPset_Space",
         "SGPset_Material"
@@ -19869,12 +20932,48 @@
         "SCDF",
         "LTA",
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*FIREENGINEACCESSROAD"
+          ],
+          "property_sets": [
+            "SGPset_Space"
+          ]
+        },
+        {
+          "subtypes": [
+            "*FIREENGINEACCESSWAY"
+          ],
+          "property_sets": [
+            "SGPset_Space"
+          ]
+        },
+        {
+          "subtypes": [
+            "*PARKINGACCESSWAY"
+          ],
+          "property_sets": [
+            "SGPset_Material"
+          ]
+        },
+        {
+          "subtypes": [
+            "*VEHICULARSERVICEROAD"
+          ],
+          "property_sets": [
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Roof",
       "entity": "IfcCovering",
-      "subtypes": [],
+      "subtypes": [
+        "ROOFING"
+      ],
       "property_sets": [
         "SGPset_Covering",
         "SGPset_Material"
@@ -19885,6 +20984,17 @@
       "agencies": [
         "BCA",
         "NParks"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "ROOFING"
+          ],
+          "property_sets": [
+            "SGPset_Covering",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
@@ -19901,12 +21011,23 @@
       "agencies": [
         "BCA",
         "NParks"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_Roof",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Roof",
       "entity": "IfcSlab",
-      "subtypes": [],
+      "subtypes": [
+        "ROOF"
+      ],
       "property_sets": [
         "SGPset_Slab",
         "SGPset_Material"
@@ -19917,12 +21038,30 @@
       "agencies": [
         "BCA",
         "NParks"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "ROOF"
+          ],
+          "property_sets": [
+            "SGPset_Slab",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Sanitary Appliances",
       "entity": "IfcSanitaryTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "BATH",
+        "BIDET",
+        "SHOWER",
+        "URINAL",
+        "WASHHANDBASIN",
+        "*WATERCLOSET"
+      ],
       "property_sets": [
         "SGPset_SanitaryTerminal"
       ],
@@ -19931,12 +21070,29 @@
       ],
       "agencies": [
         "All"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "BATH",
+            "BIDET",
+            "SHOWER",
+            "URINAL",
+            "WASHHANDBASIN",
+            "*WATERCLOSET"
+          ],
+          "property_sets": [
+            "SGPset_SanitaryTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Sanitary Appliances (Bath)",
       "entity": "IfcSanitaryTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "BATH"
+      ],
       "property_sets": [
         "SGPset_SanitaryTerminal"
       ],
@@ -19945,12 +21101,24 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "BATH"
+          ],
+          "property_sets": [
+            "SGPset_SanitaryTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Sanitary Appliances (Bidet)",
       "entity": "IfcSanitaryTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "BIDET"
+      ],
       "property_sets": [
         "SGPset_SanitaryTerminal"
       ],
@@ -19959,12 +21127,24 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "BIDET"
+          ],
+          "property_sets": [
+            "SGPset_SanitaryTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Sanitary Appliances (Shower)",
       "entity": "IfcSanitaryTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "SHOWER"
+      ],
       "property_sets": [
         "SGPset_SanitaryTerminal"
       ],
@@ -19973,12 +21153,24 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "SHOWER"
+          ],
+          "property_sets": [
+            "SGPset_SanitaryTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Sanitary Appliances (Urinal)",
       "entity": "IfcSanitaryTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "URINAL"
+      ],
       "property_sets": [
         "SGPset_SanitaryTerminal"
       ],
@@ -19990,12 +21182,24 @@
         "BCA",
         "NEA",
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "URINAL"
+          ],
+          "property_sets": [
+            "SGPset_SanitaryTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Sanitary Appliances (Wash Basin)",
       "entity": "IfcSanitaryTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "WASHHANDBASIN"
+      ],
       "property_sets": [
         "SGPset_SanitaryTerminal"
       ],
@@ -20006,12 +21210,24 @@
       "agencies": [
         "NEA",
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "WASHHANDBASIN"
+          ],
+          "property_sets": [
+            "SGPset_SanitaryTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Sanitary Appliances (Water Closet)",
       "entity": "IfcSanitaryTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "*WATERCLOSET"
+      ],
       "property_sets": [
         "SGPset_SanitaryTerminal"
       ],
@@ -20023,12 +21239,24 @@
         "BCA",
         "NEA",
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*WATERCLOSET"
+          ],
+          "property_sets": [
+            "SGPset_SanitaryTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Seating",
       "entity": "IfcFurniture",
-      "subtypes": [],
+      "subtypes": [
+        "*BENCH"
+      ],
       "property_sets": [
         "SGPset_Furniture"
       ],
@@ -20037,12 +21265,24 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*BENCH"
+          ],
+          "property_sets": [
+            "SGPset_Furniture"
+          ]
+        }
       ]
     },
     {
       "name": "Shading Device",
       "entity": "IfcShadingDevice",
-      "subtypes": [],
+      "subtypes": [
+        "*LOUVREDPANEL"
+      ],
       "property_sets": [
         "SGPset_ShadingDevice"
       ],
@@ -20051,12 +21291,24 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*LOUVREDPANEL"
+          ],
+          "property_sets": [
+            "SGPset_ShadingDevice"
+          ]
+        }
       ]
     },
     {
       "name": "Signage",
       "entity": "IfcBuildingElementProxy",
-      "subtypes": [],
+      "subtypes": [
+        "*SIGNAGE_EXIT"
+      ],
       "property_sets": [
         "SGPset_BuildingElementProxy"
       ],
@@ -20065,6 +21317,16 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*SIGNAGE_EXIT"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxy"
+          ]
+        }
       ]
     },
     {
@@ -20079,12 +21341,23 @@
       ],
       "agencies": [
         "URA"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_Site"
+          ]
+        }
       ]
     },
     {
       "name": "Site Boundary",
       "entity": "IfcGeographicElement",
-      "subtypes": [],
+      "subtypes": [
+        "*CADASTRALLOT",
+        "*SITEBOUNDARY"
+      ],
       "property_sets": [
         "SGPset_GeographicElementDimension",
         "SGPset_GeographicElement"
@@ -20096,12 +21369,33 @@
       "agencies": [
         "URA",
         "NPARKS"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*CADASTRALLOT"
+          ],
+          "property_sets": [
+            "SGPset_GeographicElementDimension"
+          ]
+        },
+        {
+          "subtypes": [
+            "*SITEBOUNDARY"
+          ],
+          "property_sets": [
+            "SGPset_GeographicElementDimension",
+            "SGPset_GeographicElement"
+          ]
+        }
       ]
     },
     {
       "name": "Site Coverage",
       "entity": "IfcBuildingElementProxy",
-      "subtypes": [],
+      "subtypes": [
+        "*SITECOVERAGE"
+      ],
       "property_sets": [
         "SGPset_BuildingElementProxy"
       ],
@@ -20110,12 +21404,25 @@
       ],
       "agencies": [
         "URA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*SITECOVERAGE"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxy"
+          ]
+        }
       ]
     },
     {
       "name": "Slab",
       "entity": "IfcSlab",
-      "subtypes": [],
+      "subtypes": [
+        "FLOOR",
+        "LANDING"
+      ],
       "property_sets": [
         "SGPset_Slab",
         "SGPset_SlabReinforcement",
@@ -20127,12 +21434,28 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "FLOOR",
+            "LANDING"
+          ],
+          "property_sets": [
+            "SGPset_Slab",
+            "SGPset_SlabReinforcement",
+            "SGPset_SlabDimension",
+            "SGPset_Material"
+          ]
+        }
       ]
     },
     {
       "name": "Soffit",
       "entity": "IfcCovering",
-      "subtypes": [],
+      "subtypes": [
+        "*SOFFIT"
+      ],
       "property_sets": [
         "Pset_CoveringCommon"
       ],
@@ -20141,12 +21464,24 @@
       ],
       "agencies": [
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*SOFFIT"
+          ],
+          "property_sets": [
+            "Pset_CoveringCommon"
+          ]
+        }
       ]
     },
     {
       "name": "Space (Area)",
       "entity": "IfcSpace",
-      "subtypes": [],
+      "subtypes": [
+        "*AREA_GFA"
+      ],
       "property_sets": [
         "SGPset_SpaceArea_GFA",
         "SGPset_SpaceArea_Strata",
@@ -20159,12 +21494,28 @@
       ],
       "agencies": [
         "URA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*AREA_GFA"
+          ],
+          "property_sets": [
+            "SGPset_SpaceArea_GFA",
+            "SGPset_SpaceArea_Strata",
+            "SGPset_SpaceArea_Connectivity",
+            "SGPset_SpaceArea_Landscape",
+            "SGPset_SpaceArea_Verification"
+          ]
+        }
       ]
     },
     {
       "name": "Space (Usage)",
       "entity": "IfcSpace",
-      "subtypes": [],
+      "subtypes": [
+        "SPACE"
+      ],
       "property_sets": [
         "SGPset_Space",
         "SGPset_SpaceDimension"
@@ -20174,12 +21525,25 @@
       ],
       "agencies": [
         "All"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "SPACE"
+          ],
+          "property_sets": [
+            "SGPset_Space",
+            "SGPset_SpaceDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Sprinkler (Non-Fire; for NEA)",
       "entity": "IfcSanitaryTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "*SPRINKLER"
+      ],
       "property_sets": [
         "SGPset_SanitaryTerminal"
       ],
@@ -20188,12 +21552,24 @@
       ],
       "agencies": [
         "NEA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*SPRINKLER"
+          ],
+          "property_sets": [
+            "SGPset_SanitaryTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Staircase",
       "entity": "IfcSpace",
-      "subtypes": [],
+      "subtypes": [
+        "SPACE"
+      ],
       "property_sets": [
         "SGPset_Space"
       ],
@@ -20202,12 +21578,30 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "SPACE"
+          ],
+          "property_sets": [
+            "SGPset_Space"
+          ]
+        }
       ]
     },
     {
       "name": "Staircase",
       "entity": "IfcStair",
-      "subtypes": [],
+      "subtypes": [
+        "CURVED_RUN_STAIR",
+        "SPIRAL_STAIR",
+        "STRAIGHT_RUN_STAIR",
+        "DOUBLE_RETURN_STAIR",
+        "HALF_TURN_STAIR",
+        "QUARTER_TURN_STAIR",
+        "THREE_QUARTER_TURN_STAIR"
+      ],
       "property_sets": [
         "Pset_StairCommon",
         "SGPset_StairReinforcement",
@@ -20222,6 +21616,31 @@
       "agencies": [
         "SCDF",
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "CURVED_RUN_STAIR",
+            "SPIRAL_STAIR",
+            "STRAIGHT_RUN_STAIR",
+            "DOUBLE_RETURN_STAIR",
+            "HALF_TURN_STAIR",
+            "QUARTER_TURN_STAIR",
+            "THREE_QUARTER_TURN_STAIR"
+          ],
+          "property_sets": [
+            "Pset_StairCommon"
+          ]
+        },
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_StairReinforcement",
+            "SGPset_StairSteelConnection",
+            "SGPset_Stair",
+            "SGPset_StairDimension"
+          ]
+        }
       ]
     },
     {
@@ -20241,12 +21660,33 @@
       "agencies": [
         "BCA",
         "SCDF"
+      ],
+      "variants": [
+        {
+          "subtypes": [],
+          "property_sets": [
+            "Pset_StairFlightCommon",
+            "SGPset_Material",
+            "SGPset_StairFlight",
+            "SGPset_Stairflight"
+          ]
+        }
       ]
     },
     {
       "name": "Tank",
       "entity": "IfcTank",
-      "subtypes": [],
+      "subtypes": [
+        "STORAGE",
+        "*DETENTIONTANK",
+        "*RAINWATERHARVESTINGTANK",
+        "*IRRIGATIONTANK",
+        "*SPRINKLERTANK",
+        "*BALANCINGTANK",
+        "*SECTIONAL",
+        "VESSEL",
+        "*RECHARGEWELL"
+      ],
       "property_sets": [
         "SGPset_Tank",
         "Pset_TankTypeCommon",
@@ -20257,12 +21697,34 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "STORAGE",
+            "*DETENTIONTANK",
+            "*RAINWATERHARVESTINGTANK",
+            "*IRRIGATIONTANK",
+            "*SPRINKLERTANK",
+            "*BALANCINGTANK",
+            "*SECTIONAL",
+            "VESSEL",
+            "*RECHARGEWELL"
+          ],
+          "property_sets": [
+            "SGPset_Tank",
+            "Pset_TankTypeCommon",
+            "SGPset_TankDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Tank (RC Tank)",
       "entity": "IfcSpace",
-      "subtypes": [],
+      "subtypes": [
+        "SPACE"
+      ],
       "property_sets": [
         "SGPset_Space",
         "SGPset_SpaceDimension"
@@ -20272,12 +21734,25 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "SPACE"
+          ],
+          "property_sets": [
+            "SGPset_Space",
+            "SGPset_SpaceDimension"
+          ]
+        }
       ]
     },
     {
       "name": "Type Bedding for Pipe",
       "entity": "IfcPipeSegment",
-      "subtypes": [],
+      "subtypes": [
+        "*FOUNDATION"
+      ],
       "property_sets": [
         "SGPset_PipeSegment"
       ],
@@ -20286,12 +21761,32 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*FOUNDATION"
+          ],
+          "property_sets": [
+            "SGPset_PipeSegment"
+          ]
+        }
       ]
     },
     {
       "name": "Valve",
       "entity": "IfcValve",
-      "subtypes": [],
+      "subtypes": [
+        "*LANDINGVALVE",
+        "*SPRINKLERCONTROL",
+        "DOUBLECHECK",
+        "MIXING",
+        "*AIRADMITTANCE",
+        "*DRAINOFFCOCK",
+        "CHECK",
+        "ISOLATING",
+        "FAUCET"
+      ],
       "property_sets": [
         "SGPset_Valve"
       ],
@@ -20300,12 +21795,34 @@
       ],
       "agencies": [
         "All"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*LANDINGVALVE",
+            "*SPRINKLERCONTROL",
+            "DOUBLECHECK",
+            "MIXING",
+            "*AIRADMITTANCE",
+            "*DRAINOFFCOCK",
+            "CHECK",
+            "ISOLATING",
+            "FAUCET"
+          ],
+          "property_sets": [
+            "SGPset_Valve"
+          ]
+        }
       ]
     },
     {
       "name": "Wall",
       "entity": "IfcWall",
-      "subtypes": [],
+      "subtypes": [
+        "*BOUNDARYWALL",
+        "PARAPET",
+        "RETAININGWALL"
+      ],
       "property_sets": [
         "SGPset_Wall",
         "SGPset_WallReinforcement",
@@ -20319,12 +21836,41 @@
       ],
       "agencies": [
         "BCA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*BOUNDARYWALL",
+            "PARAPET",
+            "RETAININGWALL"
+          ],
+          "property_sets": [
+            "SGPset_Wall"
+          ]
+        },
+        {
+          "subtypes": [],
+          "property_sets": [
+            "SGPset_Wall",
+            "SGPset_WallReinforcement",
+            "SGPset_WallDimension",
+            "SGPset_Material",
+            "SGPset_WallStructuralLoad"
+          ]
+        }
       ]
     },
     {
       "name": "Waste Terminal",
       "entity": "IfcWasteTerminal",
-      "subtypes": [],
+      "subtypes": [
+        "FLOORTRAP",
+        "FLOORWASTE",
+        "GULLYSUMP",
+        "GULLYTRAP",
+        "WASTETRAP",
+        "*WASTESUMP"
+      ],
       "property_sets": [
         "SGPset_Material",
         "SGPset_WasteTerminal"
@@ -20336,12 +21882,30 @@
         "PUB",
         "NEA",
         "All"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "FLOORTRAP",
+            "FLOORWASTE",
+            "GULLYSUMP",
+            "GULLYTRAP",
+            "WASTETRAP",
+            "*WASTESUMP"
+          ],
+          "property_sets": [
+            "SGPset_Material",
+            "SGPset_WasteTerminal"
+          ]
+        }
       ]
     },
     {
       "name": "Water Meter",
       "entity": "IfcFlowMeter",
-      "subtypes": [],
+      "subtypes": [
+        "WATERMETER"
+      ],
       "property_sets": [
         "SGPset_FlowMeter",
         "SGPset_FlowMeterDimension",
@@ -20352,12 +21916,26 @@
       ],
       "agencies": [
         "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "WATERMETER"
+          ],
+          "property_sets": [
+            "SGPset_FlowMeter",
+            "SGPset_FlowMeterDimension",
+            "Pset_FlowMeterOccurrence"
+          ]
+        }
       ]
     },
     {
       "name": "Window",
       "entity": "IfcWindow",
-      "subtypes": [],
+      "subtypes": [
+        "All subtypes listed in COP"
+      ],
       "property_sets": [
         "SGPset_WindowDimension",
         "SGPset_Window",
@@ -20370,6 +21948,18 @@
         "BCA",
         "SCDF",
         "URA"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "All subtypes listed in COP"
+          ],
+          "property_sets": [
+            "SGPset_WindowDimension",
+            "SGPset_Window",
+            "SGPset_Material"
+          ]
+        }
       ]
     }
   ],

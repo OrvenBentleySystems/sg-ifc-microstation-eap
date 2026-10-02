@@ -142,7 +142,7 @@ Schema: `schema\ifcsg.catalogue.schema.json`
 
 | COP edition | Published | IFC+SG mapping | Property sets | Properties | Identified components |
 | --- | --- | --- | ---: | ---: | ---: |
-| 4 | 2026-09 | 2026-09-25 (`industry-mapping-09-2026.xlsx`) | 172 | 1,762 | 131 |
+| 4 | 2026-09 | 2026-09-25 (`industry-mapping-09-2026.xlsx`) + COP 4 PDF | 173 | 1,768 | 131 |
 | 3.1 | 2025-12 | 2025-12-04 (`industry-mapping-4-dec-2025.xlsx`) | 163 | 1,620 | 97 |
 
 COP 4 was built from COP 3.1 plus the September 2026 BCA workbook. The 13
@@ -151,6 +151,58 @@ listed in the catalogue metadata (`removed_properties`). Examples:
 `SGPset_Door.SelfClosing` moved to `Pset_DoorCommon`, `SGPset_Wall.IsExternal`
 moved to `Pset_WallCommon`, and `DoubleBayFaçade` became `DoubleBayFacade`.
 Source file names and SHA-256 hashes are recorded in each catalogue.
+
+### How current the data is, and how it is checked
+
+The checker never goes online. Every COP edition is a local JSON file inside
+the deployment pack. Updating it is a deliberate rebuild, committed and
+redeployed.
+
+COP 4 is built from two official BCA sources, which do not fully agree:
+
+1. **IFC+SG mapping workbook** `industry-mapping-09-2026.xlsx` (SHA-256
+   `d0346db4…`): property sets, properties, datatypes, identified components
+   and their subtype tokens.
+2. **COP 4th Edition PDF** (SHA-256 `cfcc7cb1…`): `tools\reconcile_cop_pdf.py`
+   parses every property table (601 entity/property pairs) and compares them
+   with the catalogue. It found and fixed 6 properties missing from the
+   workbook (for example `SGPset_Site.BuildingType`, `WithstandVoltage`,
+   `Pset_WindowCommon.IsExternal`) and 10 datatype differences (for example
+   `CXBlockID` is Label in the workbook and Integer in the COP; both are
+   accepted). The PDF's own typo `BarrierFreeAccessbility` is recorded, not
+   adopted. After reconciliation: 0 missing, 0 conflicts. Details are in
+   `metadata.cop_pdf_reconciliation`.
+
+Not covered:
+
+- The workbook describes itself as "a subset of the full IFC+SG mapping".
+  Property sets beyond it come from the IFC+SG Resource Kit property export
+  used for COP 3.1 and have not been re-issued for COP 4.
+- Which property sets apply to which element types (for example RC vs steel)
+  is stated per property in the COP, not in the workbook. A missing set beyond
+  the component's main `SGPset_<Entity>` is therefore reported as WARN, not ERROR.
+- The 28 checks are this tool's own pre-flight rules, not the CORENET X Model
+  Checker's rule set, which BCA does not publish.
+- BCA republished `industry-mapping-4-dec-2025.xlsx` under the same name with
+  different content. Both hashes are recorded in the COP 3.1 catalogue.
+
+### How findings are scoped
+
+- Every element finding names an object (IFC id, class, name, GlobalId and
+  storey). Rules marked **file-level** (schema, MVD, georeferencing, units)
+  concern the file as a whole, so they have no object.
+- Required property sets come from the element's **identified component**,
+  chosen by its subtype token (PredefinedType, or `*ObjectType` when
+  USERDEFINED). Without a recognised token, only the sets common to every
+  candidate component are required. Classes with no identified component in
+  the mapping (for example `IfcMember`) are not required to carry SGPsets.
+- Proxies that are parts of an aggregate, such as curtain-wall mullions, take
+  the parent's classification and are not listed individually.
+- Subtype rules are not applicable to IFC2X3 files, because attribute positions
+  differ. The file fails SCHEMA.001 instead.
+- In MicroStation, rows select the referenced IFC element by GlobalId (IFC4
+  and IFC2x3 references). In the standalone window, use the GlobalId and
+  storey shown in the status bar, or **Copy GlobalId**.
 
 ### Adding the next COP edition
 
@@ -165,6 +217,8 @@ python tools\build_catalogue.py "industry-mapping-NEW.xlsx" `
   --cop-title "CORENET X Code of Practice 5th Edition" `
   --cop-url "https://info.corenet.gov.sg/..."
 python tools\validate_catalogue.py
+pip install pypdf      # build-time only
+python tools\reconcile_cop_pdf.py "corenet-x-cop---5-edition.pdf" --cop 5 --apply
 ```
 
 `--from` seeds the new edition from the previous one, `--previous-mapping`

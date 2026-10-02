@@ -192,10 +192,10 @@ class Locator(object):
                 iterable = found[0] if isinstance(found, tuple) else found
                 for inst in iterable:
                     # The intrinsic DgnElementSchema instance comes first and has no
-                    # GlobalId, so the IFC4 schema has to be named explicitly.
+                    # GlobalId, so an IFC schema (IFC4, IFC2x3, ...) is named explicitly.
                     try:
                         cls = inst.GetClass()
-                        if not str(cls.GetSchema().GetName()).startswith("IFC4"):
+                        if not str(cls.GetSchema().GetName()).upper().startswith("IFC"):
                             continue
                         value = ECValue()
                         inst.GetValue(value, "GlobalId")

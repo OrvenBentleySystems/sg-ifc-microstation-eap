@@ -23,8 +23,14 @@ python tools\build_catalogue.py "industry-mapping-NEW.xlsx" `
 To refresh an existing edition, omit `--from` and `--previous-mapping`.
 
 Review the changed source hashes, property counts, datatype changes and
-`removed_properties` before committing `data/catalogues/`. Run
-`python tools\validate_catalogue.py`.
+`removed_properties` before committing `data/catalogues/`. Then reconcile the
+edition with its COP PDF (`pip install pypdf` first; build-time only) and
+validate:
+
+```powershell
+python tools\reconcile_cop_pdf.py "cop.pdf" --cop VERSION --apply
+python tools\validate_catalogue.py
+```
 
 ## Tests
 

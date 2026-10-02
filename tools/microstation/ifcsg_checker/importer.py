@@ -174,6 +174,19 @@ def _match_header(cell):
     return None
 
 
+def _match_headers(cell):
+    """Every header key a cell could mean, most specific alias first."""
+    value = _norm(cell)
+    if not value:
+        return []
+    hits = []
+    for key, aliases in HEADER_ALIASES.items():
+        best = max((len(_norm(a)) for a in aliases if _norm(a) in value), default=0)
+        if best:
+            hits.append((best, key))
+    return [key for _length, key in sorted(hits, key=lambda item: -item[0])]
+
+
 def _find_header_row(rows, look=40):
     """Row index and column map of the first row that looks like a header."""
     best = None
@@ -190,10 +203,16 @@ def _find_header_row(rows, look=40):
                 None)
             if key and key not in mapping:
                 mapping[key] = j
+        # A heading can contain several aliases ("IFC Sub Types" contains both
+        # "type" and "sub types"); take the first one not already assigned.
+        taken = set(mapping.values())
         for j, cell in enumerate(row):
-            key = _match_header(cell)
-            if key and key not in mapping:
-                mapping[key] = j
+            if j in taken:
+                continue
+            for key in _match_headers(cell):
+                if key not in mapping:
+                    mapping[key] = j
+                    break
         if "prop" in mapping and len(mapping) >= 2:
             score = len(mapping)
             if best is None or score > best[2]:
@@ -561,12 +580,20 @@ def xlsx_sections(path):
                     "property_sets": [],
                     "disciplines": [],
                     "agencies": [],
+                    "variants": [],
                 })
                 subtype = _cell(row, columns.get("subtype"))
-                if subtype and _norm(subtype) not in ("n a", "na"):
-                    for token in _split_values(subtype):
-                        if token not in item["subtypes"]:
-                            item["subtypes"].append(token)
+                tokens = [] if _is_placeholder(subtype) else _split_values(subtype)
+                for token in tokens:
+                    if token not in item["subtypes"]:
+                        item["subtypes"].append(token)
+                variant = next((v for v in item["variants"] if v["subtypes"] == tokens), None)
+                if variant is None:
+                    variant = {"subtypes": tokens, "property_sets": []}
+                    item["variants"].append(variant)
+                pset = pset.strip()
+                if pset not in variant["property_sets"]:
+                    variant["property_sets"].append(pset)
                 if pset not in item["property_sets"]:
                     item["property_sets"].append(pset)
                 for field, target in (

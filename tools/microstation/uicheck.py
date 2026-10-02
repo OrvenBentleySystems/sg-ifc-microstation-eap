@@ -140,6 +140,21 @@ def main():
     check("returning to the newest edition clears the banner",
           not win.warn_lbl.winfo_ismapped())
 
+    print("Every row says where its object is")
+    finding_rows = [d for d in win.row_data.values() if d["kind"] == "finding"]
+    sample = finding_rows[0]["finding"] if finding_rows else None
+    text = win.describe_finding(sample) if sample else ""
+    check("finding row reports GlobalId and storey",
+          "GlobalId" in text and "storey" in text, text)
+    file_level = [k for k, d in win.row_data.items() if d["kind"] == "rule" and not d["ids"]]
+    if file_level:
+        win.tree.selection_set(file_level[0])
+        win.on_row_select()
+        check("file-level rule says it has no object",
+              "file-level" in win.status.cget("text"), win.status.cget("text"))
+    labels = [w.cget("text") for w in _descend(win) if w.winfo_class() == "TButton"]
+    check("Copy GlobalId action present", "Copy GlobalId" in labels)
+
     real_engine, real_error = ui_mod.Engine, ui_mod.messagebox.showerror
     for label, exc in (("cancelled", spf_mod.OperationCancelled("stop")),
                        ("failed", RuntimeError("boom"))):

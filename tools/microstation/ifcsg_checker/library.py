@@ -30,6 +30,19 @@ def _norm(name):
     return "".join(ch for ch in str(name).lower() if ch.isalnum())
 
 
+def _token(value):
+    return re.sub(r"\s+", "", str(value or "")).upper()
+
+
+def base_entity(entity):
+    """IfcWallStandardCase -> IFCWALL: the mapping names supertypes only."""
+    name = str(entity or "").upper()
+    for suffix in ("STANDARDCASE", "ELEMENTEDCASE"):
+        if name.endswith(suffix) and len(name) > len(suffix) + 3:
+            return name[:-len(suffix)]
+    return name
+
+
 def cop_key(edition):
     """Sortable key for a COP edition string such as '3.1' or '4'."""
     numbers = [int(part) for part in re.findall(r"\d+", str(edition or ""))]
@@ -311,6 +324,83 @@ class Library(object):
             if str(item.get("entity") or "").upper() == want and item.get("name")
         ]
 
+    def component_variants(self, ifc_entity):
+        """[(component, subtype tokens, property sets)] the mapping gives an entity."""
+        want = base_entity(ifc_entity)
+        out = []
+        for item in self.identified_components:
+            if base_entity(item.get("entity")) != want:
+                continue
+            variants = item.get("variants") or [{
+                "subtypes": item.get("subtypes") or [],
+                "property_sets": item.get("property_sets") or []}]
+            for variant in variants:
+                psets = [p for p in variant.get("property_sets") or [] if p in self.sgpsets]
+                if psets:
+                    out.append((item.get("name") or "?",
+                                [_token(t) for t in variant.get("subtypes") or []],
+                                psets))
+        return out
+
+    def required_psets(self, ifc_entity, token=None):
+        """Property sets an element must carry, and why.
+
+        Returns None when the mapping has no identified component for the entity.
+        Otherwise (sets, basis). A declared subtype selects the matching
+        identified component. Without one, only the sets that every candidate
+        component needs are required, so an undeclared subtype never inflates
+        the requirement to the union of unrelated components.
+        """
+        variants = self.component_variants(ifc_entity)
+        if not variants:
+            return None
+        key = _token(token) if token else ""
+
+        def hit(subtypes):
+            return bool(key) and (key in subtypes or key.lstrip("*") in
+                                  [t.lstrip("*") for t in subtypes])
+
+        by_component = {}
+        for name, subtypes, psets in variants:
+            entry = by_component.setdefault(name, {"generic": set(), "matched": set(),
+                                                   "all": set(), "hit": False})
+            entry["all"].update(psets)
+            if not subtypes:
+                entry["generic"].update(psets)
+            elif hit(subtypes):
+                entry["matched"].update(psets)
+                entry["hit"] = True
+
+        # Within one component the workbook spreads its sets over several rows:
+        # the general (N.A) rows apply to every subtype, the subtype rows add to
+        # them. Across different components only the common sets are certain.
+        matched = [n for n, e in by_component.items() if e["hit"]]
+        if matched:
+            pools = [by_component[n]["generic"] | by_component[n]["matched"] for n in matched]
+            basis = "identified component %s (subtype %s)" % (" / ".join(sorted(matched)), token)
+        else:
+            generic = [n for n, e in by_component.items() if e["generic"]]
+            names = sorted(generic or by_component)
+            pools = [by_component[n]["generic"] if generic else by_component[n]["all"]
+                     for n in names]
+            label = (", ".join(names) if len(names) <= 4
+                     else "all %d candidate components" % len(names))
+            if generic:
+                basis = "the general %s component (any subtype)" % label
+            else:
+                reason = ("subtype %s is not listed" % token) if token else "no subtype declared"
+                basis = "%s, so only sets common to %s are required" % (reason, label)
+        required = set(pools[0])
+        for pool in pools[1:]:
+            required &= pool
+        if not required and matched and len(pools) > 1:
+            # Components sharing a token with no set in common (BCA splits
+            # "Parking Lot" and "Parking Lot (relevant elements)") are one object.
+            for pool in pools:
+                required |= pool
+            basis += "; the components share no set, so all of their sets are required"
+        return sorted(required), basis
+
     def area_scheme_by_token(self, token):
         if not token:
             return None
@@ -419,6 +509,15 @@ class Library(object):
                 if prop.get("name") == prop_name:
                     return prop.get("type")
         return None
+
+    def property_datatypes(self, pset_name, prop_name):
+        """Mapping datatype plus any datatype the COP document gives instead."""
+        entry = self.sgpsets.get(pset_name)
+        if entry:
+            for prop in entry.get("properties", []):
+                if prop.get("name") == prop_name:
+                    return [prop.get("type")] + list(prop.get("alt_types") or [])
+        return []
 
     def property_is_controlled(self, pset_name, prop_name):
         entry = self.sgpsets.get(pset_name)

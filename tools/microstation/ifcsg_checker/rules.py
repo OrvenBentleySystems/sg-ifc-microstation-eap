@@ -13,8 +13,10 @@ A rule reports one of:
 UNKNOWN is never silently upgraded to PASS.
 """
 
+import re
+
 from . import spf
-from .library import EXACT, CASE_MISMATCH, NEAR_MISS, UNKNOWN as RES_UNKNOWN
+from .library import EXACT, CASE_MISMATCH, NEAR_MISS, UNKNOWN as RES_UNKNOWN, base_entity
 
 PASS = "PASS"
 FAIL = "FAIL"
@@ -139,6 +141,7 @@ class Context(object):
     def __init__(self, ifc, library, progress=None, cancel=None):
         self.f = ifc
         self.lib = library
+        self.ifc4_layout = (ifc.schema or "").upper().startswith("IFC4")
         self.geo = spf.Geometry(ifc)
         self._progress = progress
         self._cancel = cancel
@@ -312,6 +315,10 @@ class Context(object):
             self._check_cancel()
             for _nm, pid in self.type_psets.get(tid, {}).items():
                 owners.setdefault(pid, set()).add(oid)
+        for tid, mapping in self.type_psets.items():
+            for _nm, pid in mapping.items():
+                if pid not in owners:
+                    owners[pid] = {tid}
         self.pset_owners = dict((k, sorted(v)) for k, v in owners.items())
 
     # -- helpers ------------------------------------------------------------
@@ -377,13 +384,22 @@ class Context(object):
                        name=self.label(ent), guid=self.guid(ent), detail=detail)
 
     def owners_of(self, pset_ids):
-        """Locatable objects carrying any of these property sets."""
+        """Objects carrying any of these property sets, geometric ones first.
+
+        Sets attached only to the project, site, building, storey or a type are
+        still tied to that object rather than reported as objectless.
+        """
         out = set()
+        others = set()
         for pid in pset_ids:
             for oid in self.pset_owners.get(pid, []):
-                if oid in self.geometric_ids:
-                    out.add(oid)
-        return sorted(out)
+                (out if oid in self.geometric_ids else others).add(oid)
+        return sorted(out) or sorted(others)
+
+    def is_part(self, oid):
+        """True for a component part aggregated under a non-spatial element."""
+        parent = self.aggregate_parent.get(oid)
+        return parent is not None and self.f.type_of(parent) not in SPATIAL_CLASSES
 
     def property_finding(self, rule_id, severity, message, pset_ids,
                          pset_name="", detail=""):
@@ -394,7 +410,7 @@ class Context(object):
         if ids:
             bits.append("affects %d element(s)" % len(ids))
         else:
-            bits.append("not attached to any locatable element")
+            bits.append("the property set is not attached to any object in the file")
         if pset_name:
             bits.append("in %s" % pset_name)
         return Finding(
@@ -676,26 +692,57 @@ def _class_001(ctx):
     proxies = ctx.f.of_type("IFCBUILDINGELEMENTPROXY")
     if not proxies:
         return _mk(ctx, "CLASS.001", PASS, "No IfcBuildingElementProxy in the model.")
+    variants = ctx.lib.component_variants("IFCBUILDINGELEMENTPROXY")
+    mapped = {}
+    for name, subtypes, _psets in variants:
+        for token in subtypes:
+            mapped.setdefault(token.lstrip("*"), name)
     findings = []
+    parts = 0
     for p in proxies:
+        obj_type = p.value(spf.IDX_OBJECTTYPE) or ""
+        token = re.sub(r"\s+", "", obj_type).upper().lstrip("*")
+        if token and token in mapped:
+            continue
+        if ctx.is_part(p.id):
+            parts += 1
+            continue
         parent = ctx.f.type_of(ctx.aggregate_parent.get(p.id)) or ""
         findings.append(ctx.finding(
             "CLASS.001", "ERROR",
-            "Exported as IfcBuildingElementProxy; carries no IFC+SG regulatory semantics.",
-            p, detail="ObjectType=%s%s" % (
-                p.value(spf.IDX_OBJECTTYPE) or "unset",
-                (" part of " + parent) if parent else "")))
+            "IfcBuildingElementProxy without a mapped IFC+SG subtype token.",
+            p, detail="ObjectType=%s%s. Reclassify to the correct IFC entity, or set the "
+                      "ObjectType token of the identified component it represents."
+                      % (obj_type or "unset", (" part of " + parent) if parent else "")))
+    accepted = len(proxies) - len(findings) - parts
+    part_note = ("" if not parts else
+                 " %d further proxies are parts of an aggregate such as a curtain wall; "
+                 "they take the parent's classification and are not listed." % parts)
+    if not findings:
+        return _mk(ctx, "CLASS.001", PASS,
+                   "No stand-alone proxy without a mapped IFC+SG subtype token (%d mapped)."
+                   % accepted + part_note)
     return _mk(ctx, "CLASS.001", FAIL,
-               "%d elements exported as IfcBuildingElementProxy. Each must be confirmed "
-               "against the Glossary of Identified Components; any that map to an "
-               "Identified Component must be reclassified." % len(proxies), findings)
+               "%d stand-alone IfcBuildingElementProxy elements carry no mapped IFC+SG "
+               "subtype token; %d do.%s" % (len(findings), accepted, part_note), findings)
+
+
+def _not_ifc4(ctx, rule_id):
+    return _mk(ctx, rule_id, NOT_APPLICABLE,
+               "The file is %s. Subtype attributes sit at different positions outside "
+               "IFC4, so reading them would report wrong values. Fix SCHEMA.001 "
+               "(export IFC4 Reference View) first." % (ctx.f.schema or "not IFC4"))
 
 
 def _class_002(ctx):
+    if not ctx.ifc4_layout:
+        return _not_ifc4(ctx, "CLASS.002")
     findings = []
     unknown_layout = {}
     checked = 0
     for ent in ctx.element_ids:
+        if ent.type == "IFCBUILDINGELEMENTPROXY" and ctx.is_part(ent.id):
+            continue
         value, known = ctx.predefined_type(ent)
         if not known:
             unknown_layout[ent.type] = unknown_layout.get(ent.type, 0) + 1
@@ -734,6 +781,8 @@ def _class_002(ctx):
 
 
 def _class_003(ctx):
+    if not ctx.ifc4_layout:
+        return _not_ifc4(ctx, "CLASS.003")
     findings = []
     checked = 0
     unresolved = 0
@@ -764,12 +813,18 @@ def _class_003(ctx):
             continue
         checked += 1
         obj_type = ent.value(spf.IDX_OBJECTTYPE)
-        if not ctx.lib.is_complete:
-            unresolved += 1
+        variants = ctx.lib.component_variants(ent.type)
+        if not variants:
+            continue
+        valid = set(t.lstrip("*") for _n, subtypes, _p in variants for t in subtypes)
+        token = re.sub(r"\s+", "", str(obj_type or "")).upper().lstrip("*")
+        if token and token in valid:
             continue
         findings.append(ctx.finding(
             "CLASS.003", "WARN",
-            "USERDEFINED token '%s' could not be confirmed against the mapping." % obj_type, ent))
+            "USERDEFINED token '%s' is not a subtype the mapping lists for %s."
+            % (obj_type or "", ent.type), ent,
+            detail="Mapped tokens: %s" % (", ".join(sorted(valid)[:25]) or "none")))
 
     if findings:
         return _mk(ctx, "CLASS.003", FAIL,
@@ -784,42 +839,103 @@ def _class_003(ctx):
 
 # -- property sets ----------------------------------------------------------
 
+def _subtype_token(ctx, ent):
+    """The IFC+SG subtype token of an element: PredefinedType or *ObjectType."""
+    if not ctx.ifc4_layout:
+        return None
+    value, known = ctx.predefined_type(ent)
+    obj_type = ent.value(spf.IDX_OBJECTTYPE)
+    if known and value and value.upper() not in ("NOTDEFINED", "USERDEFINED"):
+        return value
+    if obj_type and (not known or (value or "").upper() == "USERDEFINED"):
+        return "*" + obj_type.lstrip("*")
+    return None
+
+
 def _pset_001(ctx):
+    """Every element of an identified component carries that component's sets.
+
+    The workbook lists a component's sets without their applicability, which the
+    COP gives per property ("All walls", "RC walls", "When required"). So only
+    the component's own SGPset_<Entity> - or, failing that, every listed set - is
+    unconditional and an ERROR when absent; other absent sets are a WARN to
+    confirm against the COP (for example reinforcement on a steel beam).
+    """
     findings = []
     checked = 0
-    unresolved_classes = {}
+    unmapped = {}
+    skipped_proxies = 0
+    errors = 0
     for ent in ctx.element_ids + ctx.f.of_type("IFCSPACE"):
-        expected = ctx.lib.psets_for_entity(_ifc_name(ent.type))
-        present = ctx.psets_of(ent.id)
-        if not expected:
-            unresolved_classes[ent.type] = unresolved_classes.get(ent.type, 0) + 1
-            if not ctx.sg_psets_of(ent.id):
-                findings.append(ctx.finding(
-                    "PSET.001", "ERROR",
-                    "No SGPset attached (occurrence or type).", ent,
-                    detail="Property sets present: %s"
-                           % (", ".join(sorted(present)) or "none")))
+        token = _subtype_token(ctx, ent)
+        scheme = (ctx.lib.area_scheme_by_token(ent.value(spf.IDX_OBJECTTYPE))
+                  if ent.type == "IFCSPACE" and ctx.ifc4_layout else None)
+        if scheme is not None and scheme.get("property_set"):
+            required = ([scheme["property_set"]],
+                        "area scheme %s" % scheme.get("object_type_token"))
+        else:
+            required = ctx.lib.required_psets(ent.type, token)
+            if (required is not None and ent.type == "IFCBUILDINGELEMENTPROXY"
+                    and "identified component" not in required[1]):
+                # A proxy is only a component through its token; CLASS.001 reports it.
+                skipped_proxies += 1
+                continue
+        if required is None:
+            unmapped[ent.type] = unmapped.get(ent.type, 0) + 1
+            continue
+        sets, basis = required
+        if not sets:
             continue
         checked += 1
-        missing = [p for p in expected if p not in present]
-        if missing:
+        present = ctx.psets_of(ent.id)
+        missing = [p for p in sets if p not in present]
+        if not missing:
+            continue
+        main = "SGPSET_" + base_entity(ent.type)[3:]
+        core = [p for p in missing if p.upper() == main] or (
+            missing if len(missing) == len(sets) else [])
+        if core:
+            errors += 1
             findings.append(ctx.finding(
                 "PSET.001", "ERROR",
-                "Missing required property set(s): %s" % ", ".join(missing), ent))
+                "Missing required property set(s): %s" % ", ".join(missing), ent,
+                detail="Required by %s." % basis))
+        else:
+            findings.append(ctx.finding(
+                "PSET.001", "WARN",
+                "Missing %s - confirm whether it applies to this element in the COP."
+                % ", ".join(missing), ent,
+                detail="Listed for %s; the COP limits some sets to certain element types "
+                       "(for example RC or precast)." % basis))
 
-    note = ""
-    if unresolved_classes and not ctx.lib.is_complete:
-        note = (" The mapping library is a partial seed, so required-set lists exist only "
-                "for: %s. Classes checked for SGPset presence only: %s."
-                % (", ".join(sorted(set(
-                    e for s in ctx.lib.sgpsets.values() for e in s.get("entities", []) or []))),
-                   ", ".join("%s x%d" % (k, v) for k, v in sorted(unresolved_classes.items()))))
-    if findings:
+    notes = []
+    if skipped_proxies:
+        notes.append(" %d proxies without a mapped subtype are reported by CLASS.001 only."
+                     % skipped_proxies)
+    if unmapped:
+        notes.append(" Not checked, because the IFC+SG mapping has no identified "
+                     "component for these classes: %s."
+                     % ", ".join("%s x%d" % (k, v) for k, v in sorted(unmapped.items())))
+    if not any(n and n.upper().startswith("SGPSET_") for n in ctx.pset_name.values()):
+        notes.append(" This file contains no SGPset at all: it was not exported with an "
+                     "IFC+SG configuration, which is the single cause of these findings.")
+    if not ctx.ifc4_layout:
+        notes.append(" Subtypes are not read from a %s file, so only the sets common to "
+                     "every candidate component are required." % (ctx.f.schema or "non-IFC4"))
+    note = "".join(notes)
+    warns = len(findings) - errors
+    if errors:
         return _mk(ctx, "PSET.001", FAIL,
-                   "%d elements are missing required property sets.%s" % (len(findings), note),
-                   findings)
+                   "%d of %d checked elements lack their component's required property "
+                   "set; %d more lack a set that may be conditional.%s"
+                   % (errors, checked, warns, note), findings)
+    if findings:
+        return _mk(ctx, "PSET.001", WARN,
+                   "%d of %d checked elements lack a property set that may be conditional."
+                   "%s" % (warns, checked, note), findings)
     return _mk(ctx, "PSET.001", PASS,
-               "Required property sets present on all %d resolvable elements.%s" % (checked, note))
+               "Required property sets present on all %d checked elements.%s"
+               % (checked, note))
 
 
 class _Groups(object):
@@ -918,6 +1034,9 @@ def _pset_003(ctx):
             res = ctx.lib.resolve_property(name, pname)
             if res.status == EXACT:
                 continue
+            if res.status != EXACT and ctx.lib.owning_psets(pname):
+                # The exact name exists in another set: PSET.002 reports where it belongs.
+                continue
             if res.status == RES_UNKNOWN:
                 groups.add(("D", name, pname), "WARN",
                            "Property '%s' in '%s' is not in the loaded mapping. %s"
@@ -951,16 +1070,18 @@ def _pset_004(ctx):
         if ctx.lib.resolve_pset(name).status != EXACT:
             continue
         for _propid, pname, tname, _v in ctx.pset_props.get(pid, []):
-            declared = ctx.lib.property_datatype(name, pname)
+            declared = [d for d in ctx.lib.property_datatypes(name, pname) if d]
             if not declared:
                 continue
             checked += 1
-            accepts = DATATYPE_ACCEPTS.get(str(declared).lower())
-            if accepts is None or tname is None or tname.upper() in accepts:
+            accepts = set()
+            for item in declared:
+                accepts |= DATATYPE_ACCEPTS.get(str(item).lower(), set())
+            if not accepts or tname is None or tname.upper() in accepts:
                 continue
             groups.add((name, pname, tname), "ERROR",
                        "%s.%s is declared %s in the mapping but exported as %s."
-                       % (name, pname, declared, tname), pid, pset_name=name,
+                       % (name, pname, " or ".join(declared), tname), pid, pset_name=name,
                        detail="Accepted IFC value types: %s" % ", ".join(sorted(accepts)))
     findings = groups.emit(ctx, "PSET.004")
     if findings:

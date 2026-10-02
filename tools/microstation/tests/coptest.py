@@ -120,9 +120,93 @@ def checks_follow_edition():
           header["cop_edition"] == "3.1" and header["cop_superseded"] is True)
     check("text report renders", "cop_edition:           3.1" in out["3.1"][0].as_text())
     pset4 = " ".join(f.message for f in out["4"][1]["PSET.001"].findings)
-    pset3 = " ".join(f.message for f in out["3.1"][1]["PSET.001"].findings)
-    check("COP 4 requires Pset_WallCommon, COP 3.1 does not",
-          "Pset_WallCommon" in pset4 and "Pset_WallCommon" not in pset3)
+    check("undeclared subtype requires only sets common to every wall component",
+          "SGPset_Wall" in pset4 and "Pset_WallCommon" not in pset4
+          and "SGPset_WallReinforcement" not in pset4, pset4[:160])
+    every = all(f.all_ids for r in out["4"][1].values() for f in r.findings)
+    check("every finding points to at least one object", every)
+
+
+def requirement_semantics():
+    print("Requirements follow the identified component")
+    new = Library.discover(ROOT, cop="4")
+    old = Library.discover(ROOT, cop="3.1")
+    sets, basis = new.required_psets("IFCWALL", "*BOUNDARYWALL")
+    check("declared subtype selects its component plus its general rows",
+          {"SGPset_Material", "SGPset_Wall", "SGPset_WallDimension"} <= set(sets)
+          and "Wall" in basis, str(sets))
+    check("COP editions differ where the workbooks differ (IsExternal moved)",
+          "Pset_WallCommon" in sets
+          and "Pset_WallCommon" not in old.required_psets("IFCWALL", "*BOUNDARYWALL")[0])
+    check("standard-case entities use their supertype mapping",
+          new.required_psets("IFCWALLSTANDARDCASE", None)
+          == new.required_psets("IFCWALL", None))
+    check("entity with no identified component is not required to carry SGPsets",
+          new.required_psets("IFCMEMBER", None) is None)
+    check("a component's rows combine: lightning tape still needs its set",
+          "SGPset_BuildingElementProxy"
+          in new.required_psets("IFCBUILDINGELEMENTPROXY", "*TAPE")[0],
+          str(new.required_psets("IFCBUILDINGELEMENTPROXY", "*TAPE")))
+    stair = new.required_psets("IFCSTAIR", "STRAIGHT_RUN_STAIR")[0]
+    check("a declared subtype keeps the component's general sets",
+          "SGPset_Stair" in stair and "Pset_StairCommon" in stair, str(stair))
+    check("PARAPET keeps SGPset_WallDimension",
+          "SGPset_WallDimension" in new.required_psets("IFCWALL", "PARAPET")[0])
+    empty = []
+    for lib in (new, old):
+        for item in lib.identified_components:
+            for variant in item.get("variants") or []:
+                for token in variant.get("subtypes") or []:
+                    if (item["entity"].upper() == "IFCSPACE"
+                            and lib.area_scheme_by_token(token) is not None):
+                        continue  # area tokens resolve through the area-scheme table
+                    sets, _basis = lib.required_psets(item["entity"], token)
+                    if not sets:
+                        empty.append("%s %s %s" % (lib.editions["cop_edition"],
+                                                   item["entity"], token))
+    check("no mapped component/subtype requires nothing", not empty, ", ".join(empty[:8]))
+    space = new.required_psets("IFCSPACE", None)[0]
+    check("undeclared IfcSpace is not asked for every area scheme",
+          "SGPset_SpaceArea_Strata" not in space and "SGPset_SpaceArea_GFA" not in space,
+          str(space))
+    check("COP 4 PDF reconciliation recorded",
+          new.metadata.get("cop_pdf_reconciliation", {}).get("pdf_property_pairs") == 601)
+    check("PDF datatype accepted alongside workbook datatype",
+          new.property_datatypes("SGPset_Site", "CXBlockID") == ["Label", "Integer"])
+    check("PDF spelling accepted", "BeamFacade" in _props(new, "SGPset_Wall")
+          and "BeamFa\u00e7ade" in _props(new, "SGPset_Wall"))
+
+    with open(FIXTURE, "r", encoding="utf-8") as handle:
+        text = handle.read()
+    proxy = ("#99= IFCBUILDINGELEMENTPROXY('1Fixture0Proxy00000001',#5,'Rod',$,"
+             "'*INSULATEDCABLE',#14,$,$,.USERDEFINED.);\n"
+             "#98= IFCBUILDINGELEMENTPROXY('1Fixture0Proxy00000002',#5,'Thing',$,"
+             "'Generic Models',#14,$,$,.USERDEFINED.);\nENDSEC;")
+    with tempfile.TemporaryDirectory(prefix="ifcsg-sem-") as folder:
+        ifc4 = os.path.join(folder, "proxy.ifc")
+        with open(ifc4, "w", encoding="utf-8") as handle:
+            handle.write(text.replace("ENDSEC;\nEND-ISO", proxy + "\nEND-ISO", 1)
+                         if "ENDSEC;\nEND-ISO" in text else _append_proxy(text, proxy))
+        _ctx, results = Engine(new).run(IfcFile.read(ifc4))
+        class1 = dict((r.rule_id, r) for r in results)["CLASS.001"]
+        names = [f.name for f in class1.findings]
+        check("mapped proxy component accepted, unmapped proxy flagged",
+              names == ["Thing"], str(names))
+
+        legacy = os.path.join(folder, "legacy.ifc")
+        with open(legacy, "w", encoding="utf-8") as handle:
+            handle.write(text.replace("FILE_SCHEMA(('IFC4'))", "FILE_SCHEMA(('IFC2X3'))"))
+        _ctx, results = Engine(new).run(IfcFile.read(legacy))
+        by_id = dict((r.rule_id, r) for r in results)
+        check("IFC2X3 subtype rules are not applicable instead of misread",
+              by_id["CLASS.002"].status == "NOT_APPLICABLE"
+              and by_id["CLASS.003"].status == "NOT_APPLICABLE"
+              and by_id["SCHEMA.001"].status == "FAIL")
+
+
+def _append_proxy(text, proxy):
+    head, _sep, tail = text.rpartition("ENDSEC;")
+    return head + proxy + tail
 
 
 def edition_rebuild():
@@ -181,10 +265,32 @@ def _rename_set(path, old, new):
             zf.writestr(name, data)
 
 
+def offline():
+    print("Runs offline")
+    package = os.path.join(TOOLS, "ifcsg_checker")
+    banned = ("urllib", "http.client", "requests", "socket", "ftplib", "ssl")
+    hits = []
+    for name in sorted(os.listdir(package)):
+        if not name.endswith(".py"):
+            continue
+        with open(os.path.join(package, name), "r", encoding="utf-8") as handle:
+            for line in handle:
+                stripped = line.strip()
+                if stripped.startswith(("import ", "from ")) and any(
+                        b in stripped.split("#")[0] for b in banned):
+                    hits.append("%s: %s" % (name, stripped))
+    check("checker imports no network module", not hits, "; ".join(hits))
+    catalogues = os.listdir(os.path.join(ROOT, "data", "catalogues"))
+    check("every COP catalogue ships as a local file",
+          sorted(catalogues) == ["cop-3.1.json", "cop-4.json"], str(catalogues))
+
+
 def main():
+    offline()
     editions()
     cop4_content()
     checks_follow_edition()
+    requirement_semantics()
     edition_rebuild()
     print("\nFAILURES: %d" % len(FAILURES))
     for failure in FAILURES:
