@@ -82,7 +82,10 @@ from ifcsg_checker import sources as sources_mod         # noqa: E402
 
 def run_headless(ifc_path, out_path=None, library_root=None, cop=None):
     lib = Library.discover(library_root, cop=cop)
-    ifc = IfcFile.read(ifc_path)
+    from ifcsg_checker import spf as spf_mod
+    from ifcsg_checker import preview as preview_mod
+    retain = spf_mod.source_text_size(ifc_path) <= spf_mod.GEOMETRY_RETAIN_MAX_BYTES
+    ifc = IfcFile.read(ifc_path, retain_geometry=retain)
     ctx, results = Engine(lib).run(ifc)
     source = sources_mod.browsed_source(ifc_path)
     rep = report_mod.Report(source, ifc, ctx, results, lib)
@@ -92,7 +95,7 @@ def run_headless(ifc_path, out_path=None, library_root=None, cop=None):
         rep.write_text(out_path)
         rep.write_csv(stem + ".csv")
         rep.write_json(stem + ".json")
-        rep.write_html(stem + ".html")
+        rep.write_html(stem + ".html", pictures=preview_mod.collect_pictures(rep))
     return rep, text
 
 

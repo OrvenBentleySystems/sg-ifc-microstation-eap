@@ -91,7 +91,7 @@ def cop4_content():
     check("COP 4 retypes SGPset_Pump.PumpHead",
           _props(lib, "SGPset_Pump")["PumpHead"]["type"] == "Length")
     check("identified components replaced by the workbook",
-          len(lib.identified_components) == 131, str(len(lib.identified_components)))
+          len(lib.identified_components) == 132, str(len(lib.identified_components)))
     old = Library.discover(ROOT, cop="3.1")
     check("COP 3.1 is unchanged by the COP 4 build",
           "SelfClosing" in _props(old, "SGPset_Door")
@@ -156,6 +156,8 @@ def requirement_semantics():
     for lib in (new, old):
         for item in lib.identified_components:
             for variant in item.get("variants") or []:
+                if not variant.get("property_sets"):
+                    continue
                 for token in variant.get("subtypes") or []:
                     if (item["entity"].upper() == "IFCSPACE"
                             and lib.area_scheme_by_token(token) is not None):
@@ -171,6 +173,13 @@ def requirement_semantics():
           str(space))
     check("COP 4 PDF reconciliation recorded",
           new.metadata.get("cop_pdf_reconciliation", {}).get("pdf_property_pairs") == 601)
+    check("COP 3.1 PDF reconciliation recorded",
+          old.metadata.get("cop_pdf_reconciliation", {}).get("pdf_property_pairs") == 436)
+    check("subtype with property set N.A is still a valid token",
+          "DROPINLETCHAMBER" in new.valid_subtypes("IFCBUILDINGELEMENTPROXY"))
+    check("subtype listed only in the COP document is valid",
+          "RINSESHOWER" in new.valid_subtypes("IFCSANITARYTERMINAL")
+          and "RINSESHOWER" not in old.valid_subtypes("IFCSANITARYTERMINAL"))
     check("PDF datatype accepted alongside workbook datatype",
           new.property_datatypes("SGPset_Site", "CXBlockID") == ["Label", "Integer"])
     check("PDF spelling accepted", "BeamFacade" in _props(new, "SGPset_Wall")
@@ -180,6 +189,8 @@ def requirement_semantics():
         text = handle.read()
     proxy = ("#99= IFCBUILDINGELEMENTPROXY('1Fixture0Proxy00000001',#5,'Rod',$,"
              "'*INSULATEDCABLE',#14,$,$,.USERDEFINED.);\n"
+             "#97= IFCBUILDINGELEMENTPROXY('1Fixture0Proxy00000003',#5,'Inlet',$,"
+             "'*DROPINLETCHAMBER',#14,$,$,.USERDEFINED.);\n"
              "#98= IFCBUILDINGELEMENTPROXY('1Fixture0Proxy00000002',#5,'Thing',$,"
              "'Generic Models',#14,$,$,.USERDEFINED.);\nENDSEC;")
     with tempfile.TemporaryDirectory(prefix="ifcsg-sem-") as folder:

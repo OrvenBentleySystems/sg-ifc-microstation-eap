@@ -32,6 +32,7 @@ except Exception:
     IN_MICROSTATION = False
 
 from . import bcf as bcf_mod
+from . import preview as preview_mod
 from . import report as report_mod
 from . import spf
 from . import sources as src_mod
@@ -518,6 +519,12 @@ class CheckerWindow(MstnTk):
                 pass
             self._poll_job = None
         self._cancel_filter_jobs()
+        if getattr(self, "_preview_job", None) is not None:
+            try:
+                self.after_cancel(self._preview_job)
+            except Exception:
+                pass
+            self._preview_job = None
         if self.locator is not None:
             self.locator.close()
             self.locator = None
@@ -606,17 +613,26 @@ class CheckerWindow(MstnTk):
             chip.bind("<Button-1>", lambda _e, s=status: self.toggle_status(s))
             self.chips[status] = chip
 
-        nb = ttk.Notebook(body)
-        nb.pack(fill="both", expand=True, pady=(6, 8))
+        split = ttk.PanedWindow(body, orient="horizontal")
+        split.pack(fill="both", expand=True, pady=(6, 8))
+        nb = ttk.Notebook(split)
+        self.notebook = nb
+        self.fix_tab = ttk.Frame(nb, padding=(10, 8), style="Inner.TFrame")
         self.rules_tab = ttk.Frame(nb, padding=(10, 8), style="Inner.TFrame")
         self.objects_tab = ttk.Frame(nb, padding=(10, 8), style="Inner.TFrame")
         self.breakdown_tab = ttk.Frame(nb, padding=(10, 8), style="Inner.TFrame")
+        nb.add(self.fix_tab, text="Objects to fix")
         nb.add(self.rules_tab, text="Rules and findings")
         nb.add(self.objects_tab, text="Object checklist")
         nb.add(self.breakdown_tab, text="By discipline and storey")
+        self._build_fix_tab()
         self._build_rules_tab()
         self._build_objects_tab()
         self._build_breakdown_tab()
+        self.preview_panel = ttk.Frame(split, style="Card.TFrame", padding=(10, 8))
+        split.add(nb, weight=3)
+        split.add(self.preview_panel, weight=2)
+        self._build_preview_panel()
 
         status_bar = ttk.Frame(self, style="Status.TFrame")
         status_bar.pack(fill="x", side="bottom", before=body)
@@ -760,6 +776,272 @@ class CheckerWindow(MstnTk):
             self.warn_lbl.pack(fill="x", pady=(8, 0))
         else:
             self.warn_lbl.pack_forget()
+
+    # -- objects to fix and preview ------------------------------------------
+
+    def _build_fix_tab(self):
+        bar = ttk.Frame(self.fix_tab, style="Inner.TFrame")
+        bar.pack(fill="x", pady=(2, 6))
+        ttk.Label(bar, text="Find", style="CardMuted.TLabel").pack(side="left", padx=(0, 6))
+        self.fix_filter = tk.StringVar()
+        self.fix_filter.trace_add(
+            "write", lambda *_a: self._schedule_filter("fix", self.populate_fix))
+        ttk.Entry(bar, textvariable=self.fix_filter, width=34).pack(side="left")
+        self.fix_errors_only = tk.BooleanVar(value=False)
+        ttk.Checkbutton(bar, text="Errors only", style="Card.TCheckbutton",
+                        variable=self.fix_errors_only,
+                        command=self.populate_fix).pack(side="left", padx=12)
+        self.fix_count = ttk.Label(bar, text="", style="CardMuted.TLabel")
+        self.fix_count.pack(side="right")
+
+        wrap = ttk.Frame(self.fix_tab, style="Inner.TFrame")
+        wrap.pack(fill="both", expand=True)
+        wrap.rowconfigure(0, weight=1)
+        wrap.columnconfigure(0, weight=1)
+        cols = ("sev", "entity", "storey", "issues", "reason")
+        self.fix_tree = ttk.Treeview(wrap, columns=cols, show="tree headings",
+                                     selectmode="browse")
+        self.fix_tree.heading("#0", text="Object")
+        for col, title, width, stretch in (
+                ("sev", "Severity", 80, False), ("entity", "IFC class", 150, False),
+                ("storey", "Storey", 120, False), ("issues", "Issues", 60, False),
+                ("reason", "Main reason", 360, True)):
+            self.fix_tree.heading(col, text=title)
+            self.fix_tree.column(col, width=width, minwidth=50, stretch=stretch,
+                                 anchor="center" if col == "issues" else "w")
+        self.fix_tree.column("#0", width=200, minwidth=120, stretch=False)
+        vsb = ttk.Scrollbar(wrap, orient="vertical", command=self.fix_tree.yview)
+        self.fix_tree.configure(yscroll=vsb.set)
+        self.fix_tree.grid(row=0, column=0, sticky="nsew")
+        vsb.grid(row=0, column=1, sticky="ns")
+        self.fix_tree.tag_configure("ERROR", foreground=STATUS_COLOUR[FAIL])
+        self.fix_tree.tag_configure("WARN", foreground=STATUS_COLOUR[WARN])
+        self.fix_tree.bind("<<TreeviewSelect>>", self.on_fix_select)
+        self.fix_tree.bind("<Double-1>", lambda _e: self.preview_select())
+        ttk.Label(self.fix_tab, style="CardMuted.TLabel",
+                  text="Click an object to see it and every reason it fails. Use the "
+                       "arrow keys to step through. Double-click selects it in "
+                       "MicroStation.").pack(anchor="w", pady=(6, 0))
+
+    def _build_preview_panel(self):
+        p = self.preview_panel
+        self.preview_title = ttk.Label(p, text="No object selected", style="Card.TLabel",
+                                       font=(UI_FONT_BOLD, 11))
+        self.preview_title.pack(anchor="w")
+        self.preview_meta = ttk.Label(p, text="Run a check, then pick an object.",
+                                      style="CardMuted.TLabel", wraplength=360,
+                                      justify="left")
+        self.preview_meta.pack(anchor="w", fill="x", pady=(2, 6))
+        self.preview_canvas = tk.Canvas(p, width=360, height=250, background="#ffffff",
+                                        highlightthickness=1,
+                                        highlightbackground=PALETTE["border"])
+        self.preview_canvas.pack(fill="both", expand=False)
+        self.preview_canvas.bind("<Configure>", lambda _e: self._redraw_preview())
+        buttons = ttk.Frame(p, style="Inner.TFrame")
+        buttons.pack(fill="x", pady=6)
+        ttk.Button(buttons, text="Select in MicroStation",
+                   command=self.preview_select).pack(side="left")
+        ttk.Button(buttons, text="Isolate",
+                   command=self.preview_isolate).pack(side="left", padx=4)
+        ttk.Button(buttons, text="Copy GlobalId",
+                   command=self.preview_copy_guid).pack(side="left")
+        text_wrap = ttk.Frame(p, style="Inner.TFrame")
+        text_wrap.pack(fill="both", expand=True)
+        self.preview_text = tk.Text(text_wrap, wrap="word", height=12, relief="flat",
+                                    background=PALETTE["surface"], foreground=PALETTE["text"],
+                                    font=(UI_FONT, 9), padx=2, pady=2, cursor="arrow")
+        sb = ttk.Scrollbar(text_wrap, orient="vertical", command=self.preview_text.yview)
+        self.preview_text.configure(yscrollcommand=sb.set)
+        self.preview_text.pack(side="left", fill="both", expand=True)
+        sb.pack(side="right", fill="y")
+        self.preview_text.tag_configure("ERROR", foreground=STATUS_COLOUR[FAIL],
+                                        font=(UI_FONT_BOLD, 9))
+        self.preview_text.tag_configure("WARN", foreground=STATUS_COLOUR[WARN],
+                                        font=(UI_FONT_BOLD, 9))
+        self.preview_text.tag_configure("muted", foreground=PALETTE["muted"])
+        self.preview_text.tag_configure("fix", foreground="#344054",
+                                        font=(UI_FONT, 9, "italic"))
+        self.preview_text.configure(state="disabled")
+        self.preview_id = None
+        self._preview_wire = None
+        self._preview_note = ""
+        self._wire_cache = {}
+        self._preview_job = None
+        self._pictures = None
+
+    def populate_fix(self):
+        self.fix_tree.delete(*self.fix_tree.get_children())
+        if self.report is None:
+            self.fix_count.configure(text="")
+            return
+        want = self.fix_filter.get().strip().lower()
+        errors_only = self.fix_errors_only.get()
+        rows = self.report.failing_objects()
+        shown = 0
+        for row in rows:
+            if errors_only and row["severity"] != "ERROR":
+                continue
+            first = row["issues"][0] if row["issues"] else {}
+            reason = "%s  %s" % (first.get("rule", ""), first.get("message", ""))
+            if want and want not in " ".join((
+                    str(row["id"]), row["name"], row["entity"], row["storey"], row["guid"],
+                    " ".join(i["message"] + " " + i["rule"] for i in row["issues"])
+            )).lower():
+                continue
+            if shown >= MAX_VISIBLE_FINDINGS:
+                break
+            self.fix_tree.insert(
+                "", "end", iid=str(row["id"]),
+                text="%s  #%s" % (row["name"] or "(unnamed)", row["id"]),
+                values=(row["severity"], row["entity"], row["storey"],
+                        len(row["issues"]), reason),
+                tags=(row["severity"],))
+            shown += 1
+        errors = sum(1 for r in rows if r["severity"] == "ERROR")
+        self.fix_count.configure(
+            text="%d shown  \u00b7  %d objects to fix (%d with errors)"
+                 % (shown, len(rows), errors))
+
+    def on_fix_select(self, _event=None):
+        sel = self.fix_tree.selection()
+        if sel:
+            self.show_object(int(sel[0]))
+
+    def show_object(self, oid):
+        """Show one object and every reason it fails, in the preview panel."""
+        if self.report is None or oid is None:
+            return
+        self.preview_id = oid
+        info = self.report.describe_object(oid)
+        issues = self.report.issue_index().get(oid, [])
+        self.preview_title.configure(text="%s  #%s" % (info["name"] or "(unnamed)", oid))
+        self.preview_meta.configure(
+            text="%s  \u00b7  storey %s\nGlobalId %s"
+                 % (info["entity"], info["storey"], info["guid"] or "-"))
+        t = self.preview_text
+        t.configure(state="normal")
+        t.delete("1.0", "end")
+        if not issues:
+            t.insert("end", "No failing or warning rule names this object.", "muted")
+        for issue in issues:
+            t.insert("end", "%s  %s  %s\n" % (issue["severity"], issue["rule"],
+                                              issue["title"]), issue["severity"])
+            t.insert("end", issue["message"] + "\n")
+            if issue["detail"]:
+                t.insert("end", issue["detail"] + "\n", "muted")
+            if issue["fix"]:
+                t.insert("end", "Fix: %s\n" % issue["fix"], "fix")
+            t.insert("end", "\n")
+        t.configure(state="disabled")
+        t.yview_moveto(0)
+        # Debounced so holding an arrow key does not draw every row on the way.
+        if self._preview_job is not None:
+            try:
+                self.after_cancel(self._preview_job)
+            except Exception:
+                pass
+        self._preview_job = self.after(60, lambda: self._load_preview(oid))
+
+    def _load_preview(self, oid):
+        self._preview_job = None
+        if oid != self.preview_id or self.report is None:
+            return
+        cached = self._wire_cache.get(oid)
+        if cached is None:
+            loc = self.locator
+            indexing = (loc is not None and loc.available
+                        and getattr(loc, "_guids", None) is None)
+            if indexing:
+                previous = self.status.cget("text")
+                self.set_status("Indexing MicroStation elements for pictures (once per "
+                                "check) ...")
+            try:
+                cached = preview_mod.object_wire(self.report, oid, self.locator)
+            except Exception as exc:
+                cached = ([], "Could not draw the object: %s" % exc)
+            if indexing:
+                self.set_status(previous)
+            if len(self._wire_cache) > 300:
+                self._wire_cache.clear()
+            self._wire_cache[oid] = cached
+        self._preview_wire, self._preview_note = cached
+        self._redraw_preview()
+
+    def _redraw_preview(self):
+        c = self.preview_canvas
+        w = max(c.winfo_width(), 100)
+        h = max(c.winfo_height(), 80)
+        if self.preview_id is None:
+            preview_mod.draw(c, [], w, h, "Pick an object to see it here.")
+            return
+        preview_mod.draw(c, self._preview_wire or [], w, h,
+                         self._preview_note or "No picture available.")
+        if self._preview_wire and self._preview_note:
+            c.create_text(8, 8, anchor="nw", text=self._preview_note, width=w - 16,
+                          fill=PALETTE["muted"], font=(UI_FONT, 8))
+
+    def _clear_preview(self):
+        if self._preview_job is not None:
+            try:
+                self.after_cancel(self._preview_job)
+            except Exception:
+                pass
+            self._preview_job = None
+        self.preview_id = None
+        self._preview_wire = None
+        self._preview_note = ""
+        self._wire_cache = {}
+        self._pictures = None
+        self.preview_title.configure(text="No object selected")
+        self.preview_meta.configure(text="Run a check, then pick an object.")
+        self.preview_text.configure(state="normal")
+        self.preview_text.delete("1.0", "end")
+        self.preview_text.configure(state="disabled")
+        self._redraw_preview()
+
+    def preview_select(self):
+        if self.preview_id is not None:
+            self._do_select([self.preview_id])
+
+    def preview_isolate(self):
+        if self.preview_id is None or not self._locator_ready():
+            return
+        _count, note = self.locator.isolate([self.preview_id])
+        self.set_status(note)
+
+    def preview_copy_guid(self):
+        if self.preview_id is None or self.report is None:
+            self.set_status("Pick an object first.")
+            return
+        guid = self.report.describe_object(self.preview_id)["guid"]
+        if not guid:
+            self.set_status("This object has no GlobalId.")
+            return
+        self.clipboard_clear()
+        self.clipboard_append(guid)
+        self.set_status("Copied GlobalId %s" % guid)
+
+    def report_pictures(self):
+        """Pictures for the HTML report, drawn once per check on this thread."""
+        if self._pictures is not None or self.report is None:
+            return self._pictures or {}
+
+        def progress(label, done, total):
+            self.status.configure(text=label)
+            self.progress["value"] = int(done * 100.0 / max(total, 1))
+            try:
+                self.update_idletasks()
+            except Exception:
+                pass
+
+        try:
+            self._pictures = preview_mod.collect_pictures(
+                self.report, self.locator, progress=progress)
+        finally:
+            self.progress["value"] = 0
+        self.set_status("Drew %d object picture(s) for the report."
+                        % len(self._pictures or {}))
+        return self._pictures
 
     def _build_rules_tab(self):
         status_row = ttk.Frame(self.rules_tab, style="Inner.TFrame")
@@ -1207,7 +1489,12 @@ class CheckerWindow(MstnTk):
             def parse_progress(done, total):
                 progress("Parsing %s ..." % os.path.basename(source.path), done, total)
 
-            parsed = IfcFile.read(source.path, progress=parse_progress, cancel=cancel)
+            try:
+                retain = spf.source_text_size(source.path) <= spf.GEOMETRY_RETAIN_MAX_BYTES
+            except Exception:
+                retain = False
+            parsed = IfcFile.read(source.path, progress=parse_progress, cancel=cancel,
+                                  retain_geometry=retain)
             progress("Parsed %d entities. Building model index ..." % parsed.count(), 0, 4)
 
             def rule_progress(label, done, total):
@@ -1234,6 +1521,8 @@ class CheckerWindow(MstnTk):
         self.tree.delete(*self.tree.get_children())
         self.obj_tree.delete(*self.obj_tree.get_children())
         self.bd_tree.delete(*self.bd_tree.get_children())
+        self.fix_tree.delete(*self.fix_tree.get_children())
+        self._clear_preview()
         self._update_chips()
         gc.collect()
 
@@ -1262,19 +1551,33 @@ class CheckerWindow(MstnTk):
 
     def _finish_check(self, payload):
         source, parsed, ctx, report = payload
-        if self.locator is not None:
+        reuse = (self.locator is not None and self.source is source
+                 and self.ifc is parsed)
+        if self.locator is not None and not reuse:
             self.locator.close()
         self.ifc = parsed
         self.source = source
         self.report = report
         # Locator construction touches MSPy and therefore stays on this main thread.
-        # Its expensive GUID/range indexes remain lazy until the user requests locate.
-        self.locator = Locator(source, parsed, ctx.geo)
+        # A COP re-check keeps the same file, so its GlobalId index is reused.
+        if not reuse:
+            self.locator = Locator(source, parsed, ctx.geo)
         self.last_html = None
+        self._wire_cache = {}
+        self._pictures = None
         self.populate()
         self.populate_objects()
         self.populate_breakdown()
+        self.populate_fix()
         self._update_chips()
+        first = self.fix_tree.get_children()
+        if first:
+            self.notebook.select(self.fix_tab)
+            self.fix_tree.selection_set(first[0])
+            self.fix_tree.focus(first[0])
+            self.fix_tree.focus_set()
+        else:
+            self._clear_preview()
         self.verdict_lbl.configure(
             text=self.report.verdict,
             foreground=STATUS_COLOUR[FAIL] if self.report.counts[FAIL]
@@ -1500,6 +1803,8 @@ class CheckerWindow(MstnTk):
             return
         if data["kind"] == "finding":
             self.set_status(self.describe_finding(data["finding"]))
+            if data["finding"].ifc_id is not None:
+                self.show_object(data["finding"].ifc_id)
         elif data.get("file_level"):
             self.set_status("%s is a file-level check: it concerns the IFC file as a "
                             "whole (header, georeferencing, units), not an object."
@@ -1661,7 +1966,7 @@ class CheckerWindow(MstnTk):
             elif fmt == "csv":
                 self.report.write_csv(path)
             elif fmt == "html":
-                self.report.write_html(path)
+                self.report.write_html(path, pictures=self.report_pictures())
                 self.last_html = path
             else:
                 self.report.write_text(path)
@@ -1705,7 +2010,8 @@ class CheckerWindow(MstnTk):
         try:
             if not self.last_html or not os.path.isfile(self.last_html):
                 self.last_html = self.report.write_html(
-                    report_mod.default_export_path(self.source.path, "html"))
+                    report_mod.default_export_path(self.source.path, "html"),
+                    pictures=self.report_pictures())
             webbrowser.open("file:///" + self.last_html.replace("\\", "/"))
             self.set_status("Opened %s" % self.last_html)
         except Exception as exc:

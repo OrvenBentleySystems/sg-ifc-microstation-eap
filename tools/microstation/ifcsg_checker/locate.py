@@ -20,6 +20,7 @@ SI_PREFIX = {
 MAX_RANGE_INDEX_ELEMENTS = 100000
 MAX_GUID_SCAN_ELEMENTS = 50000
 MAX_SELECTION_ELEMENTS = 500
+MAX_WIRE_POINTS = 60000
 
 try:
     from MSPyBentleyGeom import DRange3d
@@ -31,6 +32,100 @@ try:
     IN_MICROSTATION = True
 except ImportError:
     IN_MICROSTATION = False
+
+_EDGE_COLLECTOR = None
+
+
+def _edge_collector_class():
+    """IElementGraphicsProcessor that strokes every edge an element draws.
+
+    MicroStation Python delivers element graphics to _ProcessCurveVector as
+    edge curves; facet callbacks are not dispatched. Edges are enough for a
+    wireframe picture and cost a few milliseconds per element.
+    """
+    global _EDGE_COLLECTOR
+    if _EDGE_COLLECTOR is not None:
+        return _EDGE_COLLECTOR
+    import MSPyBentley
+    import MSPyBentleyGeom
+    import MSPyDgnPlatform
+    from MSPyBentleyGeom import DPoint3d, DPoint3dArray, IFacetOptions
+    from MSPyDgnPlatform import IElementGraphicsProcessor
+
+    status_enum = next((getattr(m, "BentleyStatus") for m in
+                        (MSPyBentley, MSPyDgnPlatform, MSPyBentleyGeom)
+                        if hasattr(m, "BentleyStatus")), None)
+    success = status_enum.eSUCCESS if status_enum is not None else 0
+    options = IFacetOptions.CreateForCurves()
+
+    class EdgeCollector(IElementGraphicsProcessor):
+        def __init__(self, scale):
+            IElementGraphicsProcessor.__init__(self)
+            self.scale = scale
+            self.affine = None
+            self.lines = []
+            self.points = 0
+            self.errors = 0
+
+        def _AnnounceTransform(self, trans):
+            # The announced transform cannot be copied out of the callback, so
+            # its effect on the origin and the unit axes is captured instead.
+            # An exception here would silently end processing of the element.
+            try:
+                if trans is None:
+                    self.affine = None
+                    return
+                probe = []
+                for x, y, z in ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0),
+                                (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)):
+                    p = DPoint3d.From(x, y, z)
+                    trans.Multiply(p)
+                    probe.append((p.x, p.y, p.z))
+                o = probe[0]
+                self.affine = (o,) + tuple(
+                    (q[0] - o[0], q[1] - o[1], q[2] - o[2]) for q in probe[1:])
+            except BaseException:
+                self.errors += 1
+                self.affine = None
+
+        def _ProcessAsFacets(self, is_polyface):
+            return False
+
+        def _ProcessAsBody(self, is_curved):
+            return False
+
+        def _ProcessCurveVector(self, curves, is_filled):
+            try:
+                if self.points >= MAX_WIRE_POINTS:
+                    return success
+                a = self.affine
+                s = self.scale
+                for prim in curves:
+                    strokes = DPoint3dArray()
+                    try:
+                        prim.AddStrokes(strokes, options)
+                    except BaseException:
+                        self.errors += 1
+                        continue
+                    line = []
+                    for i in range(len(strokes)):
+                        p = strokes[i]
+                        x, y, z = p.x, p.y, p.z
+                        if a is not None:
+                            o, ax, ay, az = a
+                            x, y, z = (o[0] + ax[0] * x + ay[0] * y + az[0] * z,
+                                       o[1] + ax[1] * x + ay[1] * y + az[1] * z,
+                                       o[2] + ax[2] * x + ay[2] * y + az[2] * z)
+                        line.append((x * s, y * s, z * s))
+                    if len(line) >= 2:
+                        self.lines.append(line)
+                        self.points += len(line)
+            except BaseException:
+                self.errors += 1
+            return success
+
+    _EDGE_COLLECTOR = EdgeCollector
+    return EdgeCollector
 
 
 def ifc_length_to_metres(ifc):
@@ -217,6 +312,36 @@ class Locator(object):
         if not self.available:
             return 0
         return len(self._ensure_guid_index())
+
+    def wireframe(self, ifc_id):
+        """Edges of the MicroStation element(s) for this IFC entity, in metres.
+
+        Returns (lines, note). Only exact GlobalId matches are drawn, so the
+        picture is always the object the finding is about.
+        """
+        if not self.available:
+            return [], self.reason
+        entity = self.f.get(ifc_id)
+        guid = entity.value(spf.IDX_GLOBALID) if entity is not None else None
+        if not guid:
+            return [], "The IFC entity has no GlobalId."
+        refs = self._ensure_guid_index().get(guid)
+        if not refs:
+            note = "GlobalId %s is not in the MicroStation reference." % guid
+            if self.guid_index_truncated:
+                note += " The identity index stopped at its safety limit."
+            return [], note
+        try:
+            uor = float(self._model.GetModelInfo().GetUorPerMeter()) or 1.0
+            collector = _edge_collector_class()(1.0 / uor)
+            from MSPyDgnPlatform import ElementGraphicsOutput
+            for ref in refs:
+                ElementGraphicsOutput.Process(ElementHandle(ref, self._model), collector)
+        except Exception as exc:
+            return [], "MicroStation could not draw the element: %s" % exc
+        if not collector.lines:
+            return [], "The element has no visible edges."
+        return collector.lines, ""
 
     def matches(self, ifc_id, pad_uor=1000.0):
         """Reference-model elements that represent this IFC entity.

@@ -119,6 +119,32 @@ def main():
     check("fixture check completes", _pump_until(win, lambda: not win.busy, 15.0)
           and win.report is not None)
     first = win.report.header()["cop_edition"] if win.report else None
+    print("Objects to fix and preview")
+    fix_rows = win.fix_tree.get_children()
+    check("objects-to-fix tab lists every object to fix",
+          len(fix_rows) == len(win.report.failing_objects()), str(len(fix_rows)))
+    check("objects-to-fix tab opens after a check",
+          win.notebook.select() == str(win.fix_tab))
+    _pump_until(win, lambda: win.preview_id is not None and win._preview_job is None, 3.0)
+    top = win.report.failing_objects()[0]
+    check("first object is shown without a click", win.preview_id == top["id"])
+    shown = win.preview_text.get("1.0", "end")
+    check("preview lists every reason for the object",
+          all(i["rule"] in shown for i in top["issues"]), shown[:120])
+    check("preview names the object", ("#%s" % top["id"]) in win.preview_title.cget("text"))
+    check("preview explains a missing picture",
+          bool(win._preview_wire) or bool(win._preview_note), win._preview_note)
+    finding_row = next(k for k, d in win.row_data.items() if d["kind"] == "finding"
+                       and d["finding"].ifc_id not in (None, top["id"]))
+    win.tree.selection_set(finding_row)
+    win.on_row_select()
+    check("selecting a finding previews its object",
+          win.preview_id == win.row_data[finding_row]["finding"].ifc_id)
+    win.fix_filter.set("zz-no-match-zz")
+    _pump_until(win, lambda: not win.fix_tree.get_children(), 2.0)
+    check("find box filters objects", not win.fix_tree.get_children())
+    win.fix_filter.set("")
+    _pump_until(win, lambda: bool(win.fix_tree.get_children()), 2.0)
     chip = win.chips[ui_mod.FAIL].cget("text")
     check("status chips show counts after a check", chip.split()[-1].isdigit(), chip)
     older = next(i for i, e in enumerate(win.editions) if e.cop_edition == "3.1")

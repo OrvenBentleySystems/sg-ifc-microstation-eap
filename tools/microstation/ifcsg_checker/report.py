@@ -16,6 +16,12 @@ except ImportError:
 
 from .rules import FAIL, WARN, UNKNOWN, NOT_APPLICABLE, PASS, STATUS_ORDER
 
+# Pictures in the HTML report: enough to review every object type, small enough
+# that the file opens quickly. Remaining objects are listed without a picture.
+MAX_PICTURES = 150
+REPORT_SEGMENTS = 900
+SEVERITY_RANK = {"ERROR": 0, "WARN": 1}
+
 
 class Report(object):
     def __init__(self, source, ifc, context, results, library):
@@ -28,6 +34,56 @@ class Report(object):
         self._counts = None
         self._object_rows = None
         self._breakdown = None
+        self._failing = None
+        self._issue_index = None
+
+    # -- objects to fix -----------------------------------------------------
+
+    def issue_index(self):
+        """{ifc id: [issue, ...]} for every object named by a FAIL or WARN rule."""
+        if self._issue_index is not None:
+            return self._issue_index
+        index = {}
+        for r in self.results:
+            if r.status not in (FAIL, WARN):
+                continue
+            for f in r.findings:
+                issue = {"severity": f.severity, "rule": r.rule_id, "title": r.title,
+                         "message": f.message, "detail": f.detail, "fix": r.fix}
+                for oid in f.all_ids:
+                    bucket = index.setdefault(oid, [])
+                    if not any(i["rule"] == issue["rule"] and i["message"] == issue["message"]
+                               for i in bucket):
+                        bucket.append(issue)
+        for bucket in index.values():
+            bucket.sort(key=lambda i: (SEVERITY_RANK.get(i["severity"], 9), i["rule"]))
+        self._issue_index = index
+        return index
+
+    def describe_object(self, oid):
+        ent = self.f.get(oid)
+        if ent is None:
+            return {"id": oid, "entity": "?", "name": "", "guid": "", "storey": ""}
+        return {"id": oid, "entity": ent.type, "name": self.ctx.label(ent),
+                "guid": self.ctx.guid(ent), "storey": self.ctx.storey_label(oid)}
+
+    def failing_objects(self):
+        """One row per object to fix: errors first, then most issues, then class."""
+        if self._failing is not None:
+            return self._failing
+        rows = []
+        for oid, issues in self.issue_index().items():
+            row = self.describe_object(oid)
+            row["issues"] = issues
+            row["severity"] = issues[0]["severity"] if issues else "WARN"
+            rows.append(row)
+        rows.sort(key=lambda r: (SEVERITY_RANK.get(r["severity"], 9), -len(r["issues"]),
+                                 r["entity"], r["id"]))
+        self._failing = rows
+        return rows
+
+    def picture_targets(self, limit=MAX_PICTURES):
+        return [row["id"] for row in self.failing_objects()[:limit]]
 
     # -- verdict ------------------------------------------------------------
 
@@ -181,6 +237,7 @@ class Report(object):
     def as_dict(self):
         return {
             "header": self.header(),
+            "objects_to_fix": self.failing_objects(),
             "object_checklist": self.object_checklist(),
             "breakdown": self.breakdown_rows(),
             "rules": [r.as_dict() for r in self.results],
@@ -214,12 +271,72 @@ class Report(object):
             fh.write(self.as_text())
         return path
 
-    def write_html(self, path):
+    def write_html(self, path, pictures=None):
         with open(path, "w", encoding="utf-8") as fh:
-            fh.write(self.as_html())
+            fh.write(self.as_html(pictures))
         return path
 
-    def as_html(self):
+    def _objects_section(self, pictures):
+        """Every object to fix, with its picture and every reason, errors first."""
+        e = _esc
+        rows = self.failing_objects()
+        if not rows:
+            return ""
+        pictures = pictures or {}
+        errors = sum(1 for r in rows if r["severity"] == "ERROR")
+        out = ['<section id="fix"><h2>Objects to fix</h2>',
+               '<p class="lead">%d object(s) need attention: %d with errors, %d with '
+               'warnings only. Each card shows the object and every reason it does not '
+               'follow the loaded COP mapping.%s</p>'
+               % (len(rows), errors, len(rows) - errors,
+                  "" if len(rows) <= MAX_PICTURES else
+                  " The first %d are shown as cards; the rest are listed below."
+                  % MAX_PICTURES),
+               '<div class="objgrid">']
+        for row in rows[:MAX_PICTURES]:
+            pic = pictures.get(row["id"])
+            sev = "bad" if row["severity"] == "ERROR" else "warn"
+            out.append('<article class="obj %s" id="obj-%s">' % (sev, row["id"]))
+            out.append('<div class="pic">%s</div>' % (
+                pic or '<div class="nopic">No picture: geometry is not available for '
+                       'this object.</div>'))
+            out.append('<div class="objbody"><h4>%s <span class="mono">#%s</span></h4>'
+                       '<div class="meta">%s</div>'
+                       % (e(row["name"] or "(unnamed)"), row["id"],
+                          e("%s  \u00b7  storey %s  \u00b7  GlobalId %s"
+                            % (row["entity"], row["storey"], row["guid"] or "-"))))
+            out.append('<ul class="issues">')
+            for issue in row["issues"][:8]:
+                out.append('<li class="%s"><b>%s %s</b> %s%s%s</li>' % (
+                    "bad" if issue["severity"] == "ERROR" else "warn",
+                    e(issue["severity"]), e(issue["rule"]), e(issue["message"]),
+                    ('<span class="det">%s</span>' % e(issue["detail"]))
+                    if issue["detail"] else "",
+                    ('<span class="howto">Fix: %s</span>' % e(issue["fix"]))
+                    if issue["fix"] else ""))
+            if len(row["issues"]) > 8:
+                out.append('<li class="more">+ %d more issue(s) in the rule checklist '
+                           'below and in the CSV export.</li>' % (len(row["issues"]) - 8))
+            out.append('</ul></div></article>')
+        out.append('</div>')
+        rest = rows[MAX_PICTURES:]
+        if rest:
+            out.append('<table class="grid"><thead><tr><th>IFC id</th><th>Entity</th>'
+                       '<th>Name</th><th>Storey</th><th>GlobalId</th><th class="num">Issues</th>'
+                       '<th>Reasons</th></tr></thead><tbody>')
+            for row in rest:
+                reasons = "; ".join("%s %s" % (i["rule"], i["message"]) for i in row["issues"])
+                out.append('<tr class="%s"><td class="mono">#%s</td><td class="mono">%s</td>'
+                           '<td>%s</td><td>%s</td><td class="mono">%s</td>'
+                           '<td class="num">%d</td><td>%s</td></tr>'
+                           % ("bad" if row["severity"] == "ERROR" else "warn", row["id"],
+                              e(row["entity"]), e(row["name"]), e(row["storey"]),
+                              e(row["guid"]), len(row["issues"]), e(reasons)))
+            out.append('</tbody></table>')
+        out.append('</section>')
+        return "\n".join(out)
+
+    def as_html(self, pictures=None):
         h = self.header()
         e = _esc
         parts = [_HTML_HEAD % e(os.path.basename(h["source_path"] or "IFC+SG check"))]
@@ -272,6 +389,8 @@ class Report(object):
             ("Rules evaluated", len(self.results)),
         ]))
         parts.append('</div></section>')
+
+        parts.append(self._objects_section(pictures))
 
         # -- object checklist -------------------------------------------------
         checklist = self.object_checklist()
@@ -519,6 +638,24 @@ p.disclaimer{margin-top:34px;padding:14px 16px;background:#fff;
        background:#fff;border:1px solid var(--line);color:var(--muted);text-decoration:none;
        display:flex;align-items:center;justify-content:center;font-size:17px;
        box-shadow:0 2px 6px rgba(0,0,0,.12)}
+p.lead{margin:0 0 12px;color:#344054}
+.objgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(560px,1fr));gap:12px;
+         margin-bottom:14px}
+.obj{display:flex;gap:12px;background:#fff;border:1px solid var(--line);border-radius:7px;
+     padding:10px;break-inside:avoid}
+.obj.bad{border-left:4px solid var(--fail)}.obj.warn{border-left:4px solid var(--warn)}
+.obj .pic{flex:0 0 240px;height:170px;border:1px solid #eef1f5;border-radius:5px;
+          display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff}
+.obj .pic svg{width:240px;height:170px}
+.nopic{font-size:12px;color:var(--muted);padding:12px;text-align:center}
+.objbody{flex:1;min-width:0}
+.objbody h4{margin:0 0 2px;font-size:14px}
+.objbody .meta{font-size:11.5px;color:var(--muted);margin-bottom:6px;word-break:break-all}
+ul.issues{margin:0;padding-left:16px;font-size:12.5px}
+ul.issues li{margin:3px 0}
+ul.issues li.bad b{color:var(--fail)}ul.issues li.warn b{color:var(--warn)}
+ul.issues .det{display:block;color:var(--muted);font-size:11.5px}
+ul.issues .howto{display:block;color:#344054;font-size:11.5px}
 @media print{
   body{padding:0;background:#fff;font-size:11px}
   .controls,.totop{display:none}

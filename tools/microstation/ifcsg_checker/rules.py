@@ -692,11 +692,7 @@ def _class_001(ctx):
     proxies = ctx.f.of_type("IFCBUILDINGELEMENTPROXY")
     if not proxies:
         return _mk(ctx, "CLASS.001", PASS, "No IfcBuildingElementProxy in the model.")
-    variants = ctx.lib.component_variants("IFCBUILDINGELEMENTPROXY")
-    mapped = {}
-    for name, subtypes, _psets in variants:
-        for token in subtypes:
-            mapped.setdefault(token.lstrip("*"), name)
+    mapped = ctx.lib.valid_subtypes("IFCBUILDINGELEMENTPROXY")
     findings = []
     parts = 0
     for p in proxies:
@@ -813,10 +809,9 @@ def _class_003(ctx):
             continue
         checked += 1
         obj_type = ent.value(spf.IDX_OBJECTTYPE)
-        variants = ctx.lib.component_variants(ent.type)
-        if not variants:
+        valid = ctx.lib.valid_subtypes(ent.type)
+        if not valid:
             continue
-        valid = set(t.lstrip("*") for _n, subtypes, _p in variants for t in subtypes)
         token = re.sub(r"\s+", "", str(obj_type or "")).upper().lstrip("*")
         if token and token in valid:
             continue

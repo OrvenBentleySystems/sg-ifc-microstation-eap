@@ -112,6 +112,30 @@ parsed on a worker thread so the MicroStation interface remains responsive.
 **Cancel** stops parsing or rule evaluation at the next checkpoint. Click a
 status chip (FAIL, WARN, UNKNOWN, PASS) to toggle that status in the list.
 
+## Find and fix
+
+After a check the window opens on **Objects to fix**: one row per object,
+errors first. The first object is already shown on the right:
+
+- a picture of the object on its own, so it can be reviewed without switching
+  to MicroStation;
+- its class, storey and GlobalId;
+- every reason it fails, with the rule, the detail and the fix.
+
+Use the arrow keys to step through objects; the panel follows. **Find**
+filters by name, class, storey, GlobalId or reason. **Select in
+MicroStation** (or double-click) and **Isolate** act on the shown object.
+Selecting a finding on the **Rules and findings** tab shows its object too.
+
+Pictures are a depth-shaded wireframe:
+
+- In MicroStation, drawn from the referenced element itself, matched by
+  GlobalId. Parts that MicroStation merges into their parent (roof slabs,
+  stair flights) are shown with the parent and labelled so.
+- Without MicroStation, drawn from the IFC geometry for files up to 60 MB
+  (extrusions, breps, face sets, mapped items). Larger files show the
+  location text instead of a picture.
+
 ## COP selector
 
 The **Code of Practice** drop-down at the top right selects the edition the
@@ -142,8 +166,8 @@ Schema: `schema\ifcsg.catalogue.schema.json`
 
 | COP edition | Published | IFC+SG mapping | Property sets | Properties | Identified components |
 | --- | --- | --- | ---: | ---: | ---: |
-| 4 | 2026-09 | 2026-09-25 (`industry-mapping-09-2026.xlsx`) + COP 4 PDF | 173 | 1,768 | 131 |
-| 3.1 | 2025-12 | 2025-12-04 (`industry-mapping-4-dec-2025.xlsx`) | 163 | 1,620 | 97 |
+| 4 | 2026-09 | 2026-09-25 (`industry-mapping-09-2026.xlsx`) + COP 4 PDF | 173 | 1,768 | 132 |
+| 3.1 | 2025-12 | 2025-12-04 (`industry-mapping-4-dec-2025.xlsx`) + COP 3.1 PDF | 163 | 1,623 | 111 |
 
 COP 4 was built from COP 3.1 plus the September 2026 BCA workbook. The 13
 property definitions the new workbook no longer publishes were removed and are
@@ -158,7 +182,9 @@ The checker never goes online. Every COP edition is a local JSON file inside
 the deployment pack. Updating it is a deliberate rebuild, committed and
 redeployed.
 
-COP 4 is built from two official BCA sources, which do not fully agree:
+On 2 October 2026 the official COP page lists editions up to COP 4
+(`corenet-x-cop---4-edition-2026.pdf`), so COP 4 is the current edition.
+Each edition is built from two official BCA sources, which do not fully agree:
 
 1. **IFC+SG mapping workbook** `industry-mapping-09-2026.xlsx` (SHA-256
    `d0346db4…`): property sets, properties, datatypes, identified components
@@ -169,9 +195,20 @@ COP 4 is built from two official BCA sources, which do not fully agree:
    workbook (for example `SGPset_Site.BuildingType`, `WithstandVoltage`,
    `Pset_WindowCommon.IsExternal`) and 10 datatype differences (for example
    `CXBlockID` is Label in the workbook and Integer in the COP; both are
-   accepted). The PDF's own typo `BarrierFreeAccessbility` is recorded, not
-   adopted. After reconciliation: 0 missing, 0 conflicts. Details are in
-   `metadata.cop_pdf_reconciliation`.
+   accepted). It also checks the 217 subtype headings: `RINSESHOWER` is
+   listed only in the PDF and was added. The PDF's own typo
+   `BarrierFreeAccessbility` is recorded, not adopted. After reconciliation:
+   0 missing properties, 0 datatype conflicts, 0 missing subtypes. Details
+   are in `metadata.cop_pdf_reconciliation`.
+
+COP 3.1 was reconciled the same way against
+`corenet-x-cop---3-1-edition-2025-12.pdf` (436 entity/property pairs, 186
+subtype headings): 3 properties and 11 datatype differences were resolved,
+with 0 left over.
+
+Workbook rows whose property set is "N.A" still declare valid subtypes (for
+example `*DROPINLETCHAMBER` for culverts and drains). They are kept, so a
+correctly classified object is not reported as unmapped.
 
 Not covered:
 
@@ -249,7 +286,9 @@ The checker exports:
 - Text
 - CSV
 - JSON
-- HTML
+- HTML, with an **Objects to fix** section: a card per object with its
+  picture, storey, GlobalId and every reason. The first 150 objects get a
+  card; the rest are listed in a table.
 - BCF 2.1
 
 Large UI result sets and BCF selections are capped for usability. Exported
@@ -264,6 +303,7 @@ python tools\microstation\tests\featuretest.py
 python tools\microstation\tests\stabilitytest.py
 python tools\microstation\tests\cataloguetest.py
 python tools\microstation\tests\coptest.py
+python tools\microstation\tests\previewtest.py
 python tools\microstation\tests\sourcetest.py
 python tools\microstation\tests\locatortest.py
 python tools\microstation\uicheck.py

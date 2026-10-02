@@ -71,13 +71,14 @@
     "identified_components_source": {
       "sha256": "d0346db4ada59d9fef5858794102e1404b8139c368f9efcc87547b913f1e0309",
       "name": "industry-mapping-09-2026.xlsx",
-      "note": "Re-extracted with subtype-to-property-set variants (importer 1.4.1)."
+      "note": "Re-extracted with subtype variants, including subtypes whose property set is N.A (importer 1.5.0)."
     },
     "cop_pdf_reconciliation": {
       "pdf": "corenet-x-cop---4-edition-2026.pdf",
       "sha256": "cfcc7cb14641dacfdc599eb8ecfd5171de5b12dcbfca31ba26bc373f5972b841",
       "reconciled_at": "2026-10-02",
       "pdf_property_pairs": 601,
+      "changes_applied": 17,
       "pdf_typos": [
         "IfcTransportElement.BarrierFreeAccessbility"
       ],
@@ -97,9 +98,9 @@
         "accept Pset_TankTypeCommon.Capacity as Volume or Real",
         "accept Pset_TankTypeCommon.EffectiveCapacity as Volume or Real",
         "typed SGPset_Valve.SystemName as Label",
-        "typed SGPset_Valve.SystemType as Label"
-      ],
-      "changes_applied": 16
+        "typed SGPset_Valve.SystemType as Label",
+        "subtype IfcSanitaryTerminal.RINSESHOWER from the COP document"
+      ]
     }
   },
   "property_sets": [
@@ -21484,6 +21485,28 @@
     },
     {
       "name": "Culvert/ Drains",
+      "entity": "IfcBuildingElementProxy",
+      "subtypes": [
+        "*DROPINLETCHAMBER"
+      ],
+      "property_sets": [],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "PUB"
+      ],
+      "variants": [
+        {
+          "subtypes": [
+            "*DROPINLETCHAMBER"
+          ],
+          "property_sets": []
+        }
+      ]
+    },
+    {
+      "name": "Culvert/ Drains",
       "entity": "IfcCivilElement",
       "subtypes": [
         "*COMMONDRAIN",
@@ -21494,6 +21517,7 @@
         "*INTERNALDRAIN",
         "*OUTLETDRAIN",
         "*ROADSIDEDRAIN",
+        "*TRENCH",
         "TRENCH"
       ],
       "property_sets": [
@@ -21511,6 +21535,60 @@
         "LTA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*COMMONDRAIN"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*CROSSCULVERT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*CULVERT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*ENTRANCECULVERT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*EXTERNALDRAIN"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*INTERNALDRAIN"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*OUTLETDRAIN"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*ROADSIDEDRAIN"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*TRENCH"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*COMMONDRAIN",
@@ -21634,9 +21712,65 @@
         "MEP"
       ],
       "agencies": [
-        "PUB"
+        "PUB",
+        "NEA",
+        "All"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "INSPECTIONCHAMBER"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "MANHOLE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "METERCHAMBER"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*PWCSINSPECTIONCHAMBER"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*PWCSMANHOLE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*SCREENCHAMBER"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*SAMPLINGSUMP"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "SUMP"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "TRENCH"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "INSPECTIONCHAMBER",
@@ -21661,9 +21795,9 @@
       "name": "Door",
       "entity": "IfcDoor",
       "subtypes": [
+        "*BLASTDOOR",
         "DOOR",
         "GATE",
-        "*BLASTDOOR",
         "*ROLLERSHUTTER"
       ],
       "property_sets": [
@@ -21676,12 +21810,36 @@
         "ARC"
       ],
       "agencies": [
-        "All",
         "SCDF",
+        "All",
         "BCA",
         "NEA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*BLASTDOOR"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "DOOR"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "GATE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*ROLLERSHUTTER"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "DOOR",
@@ -21857,6 +22015,36 @@
         "SCDF"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "CLADDING"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*FIRECURTAIN"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "FLOORING"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*PIPESLEEVE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*SOFFIT"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "CLADDING",
@@ -22055,6 +22243,18 @@
         "SCDF"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*FOAMINLET"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*FOAMOUTLET"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*FOAMINLET",
@@ -22469,6 +22669,18 @@
       "variants": [
         {
           "subtypes": [
+            "GREASE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "OIL"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
             "GREASE",
             "OIL"
           ],
@@ -22526,6 +22738,26 @@
       "variants": [
         {
           "subtypes": [
+            "*LANDSCAPE_TREE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*LANDSCAPE_PALM"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*LANDSCAPE_HEDGE"
+          ],
+          "property_sets": [
+            "SGPset_GeographicElement"
+          ]
+        },
+        {
+          "subtypes": [
             "*LANDSCAPE_TREE",
             "*LANDSCAPE_PALM",
             "*LANDSCAPE_HEDGE"
@@ -22542,14 +22774,6 @@
           ],
           "property_sets": [
             "SGPset_GeographicElementDimension",
-            "SGPset_GeographicElement"
-          ]
-        },
-        {
-          "subtypes": [
-            "*LANDSCAPE_HEDGE"
-          ],
-          "property_sets": [
             "SGPset_GeographicElement"
           ]
         }
@@ -22602,12 +22826,12 @@
         "*AIRFINIAL",
         "*BICONNECTOR",
         "*EARTHPIT",
+        "*INSULATEDCABLE",
         "*NATURALCOMPONENT",
         "*METALCAPPING",
         "*STRIKEPAD",
-        "*TESTLINK",
         "*TAPE",
-        "*INSULATEDCABLE"
+        "*TESTLINK"
       ],
       "property_sets": [
         "SGPset_BuildingElementProxy",
@@ -22621,6 +22845,63 @@
         "BCA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*AIRFINIAL"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*BICONNECTOR"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*EARTHPIT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*INSULATEDCABLE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*NATURALCOMPONENT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*METALCAPPING"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*STRIKEPAD"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*TAPE"
+          ],
+          "property_sets": [
+            "SGPset_Material",
+            "SGPset_BuildingElementProxyDimension"
+          ]
+        },
+        {
+          "subtypes": [
+            "*TESTLINK"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*AIRFINIAL",
@@ -22668,15 +22949,6 @@
             "*EARTHPIT"
           ],
           "property_sets": [
-            "SGPset_BuildingElementProxyDimension"
-          ]
-        },
-        {
-          "subtypes": [
-            "*TAPE"
-          ],
-          "property_sets": [
-            "SGPset_Material",
             "SGPset_BuildingElementProxyDimension"
           ]
         },
@@ -22774,12 +23046,52 @@
         "ARC"
       ],
       "agencies": [
+        "LTA",
         "ALL",
         "BCA",
-        "LTA",
         "NPARKS"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*CARLOT"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxy"
+          ]
+        },
+        {
+          "subtypes": [
+            "*MOTORCYCLELOT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*LORRYLOT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*COACHLOT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*ARTICULATEDVEHICLELOT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*BICYCLELOT"
+          ],
+          "property_sets": [
+            "SGPset_BuildingElementProxy"
+          ]
+        },
         {
           "subtypes": [
             "*CARLOT",
@@ -22796,14 +23108,6 @@
         },
         {
           "subtypes": [
-            "*CARLOT"
-          ],
-          "property_sets": [
-            "SGPset_BuildingElementProxy"
-          ]
-        },
-        {
-          "subtypes": [
             "*CARLOT",
             "*MOTORCYCLELOT",
             "*LORRYLOT",
@@ -22819,14 +23123,6 @@
             "*LORRYLOT",
             "*COACHLOT",
             "*ARTICULATEDVEHICLELOT"
-          ],
-          "property_sets": [
-            "SGPset_BuildingElementProxy"
-          ]
-        },
-        {
-          "subtypes": [
-            "*BICYCLELOT"
           ],
           "property_sets": [
             "SGPset_BuildingElementProxy"
@@ -22982,6 +23278,18 @@
       "variants": [
         {
           "subtypes": [
+            "GRILLE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "LOUVRE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
             "GRILLE",
             "LOUVRE"
           ],
@@ -23060,10 +23368,70 @@
         "MEP"
       ],
       "agencies": [
-        "PUB",
-        "NEA"
+        "NEA",
+        "PUB"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "BEND"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*DRAINCHANNELBEND"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "ENTRY"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "EXIT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*FLANGEADAPTOR"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*FLEXIBLECOUPLING"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "JUNCTION"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "OBSTRUCTION"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*PIPESILENCER"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*SHORTPIECE"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "BEND",
@@ -23106,13 +23474,25 @@
         "MEP"
       ],
       "agencies": [
+        "PUB",
         "ALL",
         "BCA",
         "NPARKS",
-        "PUB",
         "NEA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "RIGIDSEGMENT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "FLEXIBLESEGMENT"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "RIGIDSEGMENT",
@@ -23467,6 +23847,30 @@
       "variants": [
         {
           "subtypes": [
+            "*AIRIMPURITIESSENSOR"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*FUELBURNINGEQUIPMENT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*INCINERATOR"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*POLLUTIONCONTROLEQUIPMENT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
             "*AIRIMPURITIESSENSOR",
             "*FUELBURNINGEQUIPMENT",
             "*INCINERATOR",
@@ -23588,6 +23992,18 @@
       "variants": [
         {
           "subtypes": [
+            "RIGIDSEGMENT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "FLEXIBLESEGMENT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
             "RIGIDSEGMENT",
             "FLEXIBLESEGMENT"
           ],
@@ -23636,6 +24052,18 @@
         "BCA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "RIGIDSEGMENT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "FLEXIBLESEGMENT"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "RIGIDSEGMENT",
@@ -23692,6 +24120,36 @@
         "BCA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*PREFABRICATEDBATHROOMUNIT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*PREFABRICATEDMEPHORIZONTALMODULE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*PREFABRICATEDMEPPLANTMODULE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*PREFABRICATEDMEPVERTICALMODULE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*PREFABRICATEDPUMPSKID"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*PREFABRICATEDBATHROOMUNIT",
@@ -23832,13 +24290,25 @@
         "SGPset_Material"
       ],
       "disciplines": [
-        "ARC",
-        "STR"
+        "STR",
+        "ARC"
       ],
       "agencies": [
         "BCA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*BOLLARD"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "GUARDRAIL"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*BOLLARD",
@@ -23869,11 +24339,29 @@
         "ARC"
       ],
       "agencies": [
-        "All",
+        "LTA",
         "BCA",
-        "LTA"
+        "All"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*CURVEDRAMP"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*FLAREDKERBRAMP"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "STRAIGHT_RUN_RAMP"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*CURVEDRAMP",
@@ -23938,6 +24426,48 @@
         "NEA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*REFUSECONTAINER"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*REFUSECOMPACTOR"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*RECYCLABLECONTAINER"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*RECYCLABLECOMPACTOR"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*REFUSEHANDLINGEQUIPMENT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*RECYCLINGBIN"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*REFUSEBIN"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*REFUSECONTAINER",
@@ -24017,6 +24547,36 @@
         "NEA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*ACCESSHATCH"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*RECYCLABLESCHUTEACCESSPANEL"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*RECYCLABLESCHUTEHOPPER"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*REFUSECHUTEACCESSPANEL"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*REFUSECHUTEHOPPER"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*ACCESSHATCH",
@@ -24213,10 +24773,10 @@
       "name": "Road",
       "entity": "IfcSpace",
       "subtypes": [
-        "*PARKINGACCESSWAY",
+        "*FIREENGINEACCESSROAD",
         "*FIREENGINEACCESSWAY",
-        "*VEHICULARSERVICEROAD",
-        "*FIREENGINEACCESSROAD"
+        "*PARKINGACCESSWAY",
+        "*VEHICULARSERVICEROAD"
       ],
       "property_sets": [
         "SGPset_Space",
@@ -24226,9 +24786,36 @@
         "ARC"
       ],
       "agencies": [
+        "SCDF",
+        "LTA",
+        "NEA",
         "All"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*FIREENGINEACCESSROAD"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*FIREENGINEACCESSWAY"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*PARKINGACCESSWAY"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*VEHICULARSERVICEROAD"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*PARKINGACCESSWAY",
@@ -24790,6 +25377,18 @@
       "variants": [
         {
           "subtypes": [
+            "FLOOR"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "LANDING"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
             "FLOOR",
             "LANDING"
           ],
@@ -25023,6 +25622,30 @@
       "variants": [
         {
           "subtypes": [
+            "CURVED"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "SPIRAL"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "WINDER"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "STRAIGHT"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
             "CURVED",
             "SPIRAL",
             "WINDER",
@@ -25067,9 +25690,64 @@
         "MEP"
       ],
       "agencies": [
+        "SCDF",
         "PUB"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "STORAGE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*DETENTIONTANK"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*RAINWATERHARVESTINGTANK"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*IRRIGATIONTANK"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*SPRINKLERTANK"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*BALANCINGTANK"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*SECTIONAL"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "VESSEL"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*RECHARGEWELL"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "STORAGE",
@@ -25165,9 +25843,66 @@
         "MEP"
       ],
       "agencies": [
+        "SCDF",
+        "PUB",
+        "NEA",
         "All"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*LANDINGVALVE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*SPRINKLERCONTROL"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "DOUBLECHECK"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "MIXING"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*AIRADMITTANCE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*DRAINOFFCOCK"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "CHECK"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "ISOLATING"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "FAUCET"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*LANDINGVALVE",
@@ -25207,9 +25942,29 @@
         "STR"
       ],
       "agencies": [
+        "NParks",
+        "URA",
         "BCA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*BOUNDARYWALL"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "PARAPET"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*RETAININGWALL"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*BOUNDARYWALL",
@@ -25253,11 +26008,47 @@
         "MEP"
       ],
       "agencies": [
-        "All",
         "PUB",
+        "All",
         "NEA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "FLOORTRAP"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "FLOORWASTE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "GULLYSUMP"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "GULLYTRAP"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "WASTETRAP"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*WASTESUMP"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "FLOORTRAP",
@@ -25323,12 +26114,42 @@
         "ARC"
       ],
       "agencies": [
-        "All",
         "BCA",
+        "All",
         "SCDF",
         "URA"
       ],
       "variants": [
+        {
+          "subtypes": [
+            "*BAYWINDOW"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*VENTILATIONSLEEVE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "*LOUVRE"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "WINDOW"
+          ],
+          "property_sets": []
+        },
+        {
+          "subtypes": [
+            "SKYLIGHT"
+          ],
+          "property_sets": []
+        },
         {
           "subtypes": [
             "*BAYWINDOW",
@@ -25588,5 +26409,10 @@
       "check": "The audit report must record which industry mapping edition and COP edition it was run against",
       "fix": "Stamp every generated report with the mapping file date."
     }
-  ]
+  ],
+  "cop_pdf_subtypes": {
+    "IfcSanitaryTerminal": [
+      "RINSESHOWER"
+    ]
+  }
 }

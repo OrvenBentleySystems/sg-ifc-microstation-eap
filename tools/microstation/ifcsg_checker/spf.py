@@ -14,6 +14,9 @@ import zipfile
 NULL_TOKENS = ("$", "*")
 READ_CHUNK = 1024 * 1024
 MAX_HEADER_CHARS = 8 * 1024 * 1024
+# Files up to this size keep their geometry, so objects can be pictured without
+# MicroStation. Peak memory is about 4.5 times the file size.
+GEOMETRY_RETAIN_MAX_BYTES = 60 * 1024 * 1024
 
 # These records dominate exported architectural models but are not needed by the
 # IFC+SG semantic rules. Their counts are retained for QC.001. Full geometry mode

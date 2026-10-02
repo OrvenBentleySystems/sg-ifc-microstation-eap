@@ -69,6 +69,11 @@
       "items": { "$ref": "#/$defs/property_set" }
     },
     "area_schemes": { "type": "array", "items": { "type": "object" } },
+    "cop_pdf_subtypes": {
+      "description": "Subtype tokens the COP document lists where the mapping workbook does not.",
+      "type": "object",
+      "additionalProperties": { "type": "array", "items": { "type": "string" } }
+    },
     "entity_domains": { "type": "array", "items": { "type": "object" } },
     "identified_components": { "type": "array", "items": { "type": "object" } },
     "rules": {

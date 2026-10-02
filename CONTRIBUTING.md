@@ -41,6 +41,7 @@ python tools\microstation\tests\featuretest.py
 python tools\microstation\tests\stabilitytest.py
 python tools\microstation\tests\cataloguetest.py
 python tools\microstation\tests\coptest.py
+python tools\microstation\tests\previewtest.py
 python tools\microstation\tests\sourcetest.py
 python tools\microstation\tests\locatortest.py
 python tools\microstation\uicheck.py

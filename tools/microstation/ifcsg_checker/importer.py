@@ -569,8 +569,13 @@ def xlsx_sections(path):
             for row in rows[header_row + 1:]:
                 name = _cell(row, columns.get("component"))
                 entity = _cell(row, columns.get("entity"))
-                pset = _cell(row, columns.get("pset"))
-                if not name or not entity or not _valid_pset_name(pset):
+                pset = _cell(row, columns.get("pset")).strip()
+                subtype = _cell(row, columns.get("subtype"))
+                tokens = [] if _is_placeholder(subtype) else _split_values(subtype)
+                # A row whose property set is "N.A" still declares a valid subtype
+                # (for example *DROPINLETCHAMBER), so the token is kept.
+                if (not name or not entity.lower().startswith("ifc")
+                        or (not _valid_pset_name(pset) and not tokens)):
                     continue
                 key = (name, entity)
                 item = components.setdefault(key, {
@@ -582,8 +587,6 @@ def xlsx_sections(path):
                     "agencies": [],
                     "variants": [],
                 })
-                subtype = _cell(row, columns.get("subtype"))
-                tokens = [] if _is_placeholder(subtype) else _split_values(subtype)
                 for token in tokens:
                     if token not in item["subtypes"]:
                         item["subtypes"].append(token)
@@ -591,11 +594,11 @@ def xlsx_sections(path):
                 if variant is None:
                     variant = {"subtypes": tokens, "property_sets": []}
                     item["variants"].append(variant)
-                pset = pset.strip()
-                if pset not in variant["property_sets"]:
-                    variant["property_sets"].append(pset)
-                if pset not in item["property_sets"]:
-                    item["property_sets"].append(pset)
+                if _valid_pset_name(pset):
+                    if pset not in variant["property_sets"]:
+                        variant["property_sets"].append(pset)
+                    if pset not in item["property_sets"]:
+                        item["property_sets"].append(pset)
                 for field, target in (
                         ("discipline", "disciplines"), ("agency", "agencies")):
                     for token in _split_values(_cell(row, columns.get(field))):

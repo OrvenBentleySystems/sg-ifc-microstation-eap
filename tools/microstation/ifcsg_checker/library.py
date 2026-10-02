@@ -342,6 +342,24 @@ class Library(object):
                                 psets))
         return out
 
+    def valid_subtypes(self, ifc_entity):
+        """Every subtype token (without '*') that the COP gives an entity.
+
+        Includes tokens of components that carry no property set and tokens the
+        COP document lists where the workbook does not.
+        """
+        want = base_entity(ifc_entity)
+        out = set()
+        for item in self.identified_components:
+            if base_entity(item.get("entity")) == want:
+                for token in item.get("subtypes") or []:
+                    out.add(_token(token).lstrip("*"))
+        for entity, tokens in (self.catalogue.get("cop_pdf_subtypes") or {}).items():
+            if base_entity(entity) == want:
+                out.update(_token(t).lstrip("*") for t in tokens)
+        out.discard("")
+        return out
+
     def required_psets(self, ifc_entity, token=None):
         """Property sets an element must carry, and why.
 

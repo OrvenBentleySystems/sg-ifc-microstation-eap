@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.5.0
+
+- Added the **Objects to fix** tab: one row per object, errors first, with a
+  side panel that shows the object's picture, storey, GlobalId and every
+  reason it fails with the fix. Opens on the first object after a check;
+  arrow keys step through.
+- Added object pictures: drawn from the referenced MicroStation element by
+  GlobalId, or from IFC geometry (files up to 60 MB) without MicroStation.
+- The HTML report has an **Objects to fix** section with a picture card for
+  each failed object (first 150) and a table for the rest. The command-line
+  report includes pictures when the IFC geometry is available.
+- Reconciled COP 3.1 with its official PDF and added subtype reconciliation
+  for both editions (`RINSESHOWER` added to COP 4).
+- Fixed: workbook rows whose property set is "N.A" dropped their subtype
+  (for example `*DROPINLETCHAMBER`), so correctly classified objects were
+  reported as unmapped. COP 3.1 regains 14 identified components.
+- Verified live in MicroStation 2026 on an IFC2x3 reference: GlobalId
+  selection, pictures for every failing class, and the report.
+
 ## 1.4.1
 
 - Fixed: required property sets were the union of every identified component

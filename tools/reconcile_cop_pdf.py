@@ -72,6 +72,31 @@ def parse_tables(text):
     return out
 
 
+def parse_subtypes(text):
+    """{entity: [subtype tokens]} from every 'IFC Entity / IFC SubType' heading."""
+    out = {}
+    for entity, sub in re.findall(r"IFC Entity:\s*(Ifc\w+)\s*\n\s*IFC SubType:\s*(.*?)\n", text):
+        for token in sub.split(","):
+            token = re.sub(r"[^A-Z0-9_]", "", token.upper())
+            if token and token not in ("NA",):
+                bucket = out.setdefault(entity, [])
+                if token not in bucket:
+                    bucket.append(token)
+    return out
+
+
+def missing_subtypes(library, pdf_subtypes):
+    out = {}
+    for entity, tokens in sorted(pdf_subtypes.items()):
+        have = library.valid_subtypes(entity)
+        if entity.upper() == "IFCSPACE":
+            have |= set(t.lstrip("*").upper() for t in library.area_scheme_tokens())
+        extra = [t for t in tokens if t not in have]
+        if extra:
+            out[entity] = extra
+    return out
+
+
 def _entity_index(catalogue):
     index = {}
     for pset in catalogue["property_sets"]:
@@ -173,12 +198,18 @@ def main(argv=None):
     library = Library.discover(args.root, cop=args.cop)
     with open(library.path, "r", encoding="utf-8") as handle:
         catalogue = json.load(handle)
-    rows = parse_tables(pdf_text(args.pdf))
+    text = pdf_text(args.pdf)
+    rows = parse_tables(text)
     pairs = set((e, p) for e, _s, p, _t in rows)
     missing, conflicts, typos = reconcile(catalogue, rows)
+    pdf_subtypes = parse_subtypes(text)
+    new_subtypes = missing_subtypes(library, pdf_subtypes)
 
-    print("COP %s PDF: %d property rows, %d entity/property pairs"
-          % (args.cop, len(rows), len(pairs)))
+    print("COP %s PDF: %d property rows, %d entity/property pairs, %d subtype headings"
+          % (args.cop, len(rows), len(pairs), sum(len(v) for v in pdf_subtypes.values())))
+    print("Subtypes only in the PDF: %d" % sum(len(v) for v in new_subtypes.values()))
+    for entity, tokens in new_subtypes.items():
+        print("  %s: %s" % (entity, ", ".join(tokens)))
     print("Missing from catalogue: %d" % len(missing))
     for (entity, prop), (pdf_type, subtype) in sorted(missing.items()):
         print("  %s.%s %s  [subtype %s]" % (entity, prop, pdf_type, subtype))
@@ -190,10 +221,18 @@ def main(argv=None):
     for (entity, prop), right in sorted(typos.items()):
         print("PDF typo: %s.%s (catalogue: %s)" % (entity, prop, right))
     if not args.apply:
-        return 1 if (missing or conflicts) else 0
+        return 1 if (missing or conflicts or new_subtypes) else 0
 
     pdf_name = os.path.basename(args.pdf)
     changes = apply(catalogue, missing, conflicts, pdf_name)
+    if new_subtypes:
+        held = catalogue.setdefault("cop_pdf_subtypes", {})
+        for entity, tokens in new_subtypes.items():
+            bucket = held.setdefault(entity, [])
+            for token in tokens:
+                if token not in bucket:
+                    bucket.append(token)
+                    changes.append("subtype %s.%s from the COP document" % (entity, token))
     with open(args.pdf, "rb") as handle:
         digest = hashlib.sha256(handle.read()).hexdigest()
     previous = catalogue["metadata"].get("cop_pdf_reconciliation") or {}
