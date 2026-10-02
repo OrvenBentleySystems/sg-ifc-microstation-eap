@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.1
+
+- Fixed a blank gap above the verdict after switching from a superseded COP
+  back to the current one.
+- Verified the installed launcher, docked in MicroStation 2026, end to end.
+
 ## 1.5.0
 
 - Added the **Objects to fix** tab: one row per object, errors first, with a

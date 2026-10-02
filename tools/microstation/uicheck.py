@@ -112,6 +112,8 @@ def main():
     check("newest edition preselected",
           win.library.editions["cop_edition"] == "4" and win.cop_box.current() == 0)
     check("no warning banner on the newest edition", not win.warn_lbl.winfo_ismapped())
+    win.update()
+    summary_y = win.summary_frame.winfo_y()
     win.sources = [sources_mod.browsed_source(FIXTURE)]
     win.source_box["values"] = [s.label for s in win.sources]
     win.source_box.current(0)
@@ -165,6 +167,9 @@ def main():
     win.update()
     check("returning to the newest edition clears the banner",
           not win.warn_lbl.winfo_ismapped())
+    check("no blank gap is left where the banner was",
+          win.summary_frame.winfo_y() == summary_y,
+          "verdict y %d, originally %d" % (win.summary_frame.winfo_y(), summary_y))
 
     print("Every row says where its object is")
     finding_rows = [d for d in win.row_data.values() if d["kind"] == "finding"]

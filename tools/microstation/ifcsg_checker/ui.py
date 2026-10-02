@@ -590,15 +590,16 @@ class CheckerWindow(MstnTk):
         self.stamp_lbl.pack(fill="x", pady=(8, 0))
 
         self.banner = ttk.Frame(body)
-        self.banner.pack(fill="x")
         self.warn_lbl = tk.Label(self.banner, background=p["banner"],
                                  foreground=p["banner_text"], anchor="w",
                                  justify="left", wraplength=900, padx=12, pady=7,
                                  font=(UI_FONT, 9))
-        self._refresh_stamp()
+        self.warn_lbl.pack(fill="x")
 
         summary = ttk.Frame(body)
         summary.pack(fill="x", pady=(10, 2))
+        self.summary_frame = summary
+        self._refresh_stamp()
         self.verdict_lbl = ttk.Label(summary, text="No check run yet. Choose a source "
                                                    "and click Run check.",
                                      style="Verdict.TLabel")
@@ -772,10 +773,12 @@ class CheckerWindow(MstnTk):
         else:
             text = ""
         self.warn_lbl.configure(text=text)
+        # Show or hide the whole banner frame: an emptied Tk frame keeps its
+        # last height, which left a blank gap after a superseded COP.
         if text:
-            self.warn_lbl.pack(fill="x", pady=(8, 0))
+            self.banner.pack(fill="x", pady=(8, 0), before=self.summary_frame)
         else:
-            self.warn_lbl.pack_forget()
+            self.banner.pack_forget()
 
     # -- objects to fix and preview ------------------------------------------
 
