@@ -3,8 +3,12 @@
 From MicroStation:
     key-in:  python load $(IFCSG_CHECKER_LAUNCHER)
 
+Standalone window (no MicroStation needed):
+    python run_ifcsg_checker.py --nodock
+
 Headless (for regression runs, no CAD licence needed):
-    python run_ifcsg_checker.py --ifc "model.ifc" --out report.txt
+    python run_ifcsg_checker.py --ifc "model.ifc" --out report.txt [--cop 4]
+    python run_ifcsg_checker.py --list-cops
 """
 
 import builtins
@@ -76,8 +80,8 @@ from ifcsg_checker import report as report_mod           # noqa: E402
 from ifcsg_checker import sources as sources_mod         # noqa: E402
 
 
-def run_headless(ifc_path, out_path=None, library_root=None):
-    lib = Library.discover(library_root)
+def run_headless(ifc_path, out_path=None, library_root=None, cop=None):
+    lib = Library.discover(library_root, cop=cop)
     ifc = IfcFile.read(ifc_path)
     ctx, results = Engine(lib).run(ifc)
     source = sources_mod.browsed_source(ifc_path)
@@ -96,6 +100,8 @@ def main(argv):
     library_root = None
     ifc_path = None
     out_path = None
+    cop = None
+    list_cops = False
     dock = True
     i = 0
     while i < len(argv):
@@ -109,12 +115,22 @@ def main(argv):
         elif arg == "--library" and i + 1 < len(argv):
             library_root = argv[i + 1]
             i += 1
+        elif arg == "--cop" and i + 1 < len(argv):
+            cop = argv[i + 1]
+            i += 1
+        elif arg == "--list-cops":
+            list_cops = True
         elif arg in ("--nodock", "--no-dock"):
             dock = False
         i += 1
 
+    if list_cops:
+        for edition in Library.available(library_root):
+            sys.stdout.write("%-6s %s\n" % (edition.cop_edition, edition.label))
+        return 0
+
     if ifc_path:
-        _rep, text = run_headless(ifc_path, out_path, library_root)
+        _rep, text = run_headless(ifc_path, out_path, library_root, cop)
         sys.stdout.write(text + "\n")
         return 0
 
@@ -123,7 +139,7 @@ def main(argv):
         return 0
 
     from ifcsg_checker.ui import launch
-    launch(library_root, dock=dock)
+    launch(library_root, dock=dock, cop=cop)
     return 0
 
 

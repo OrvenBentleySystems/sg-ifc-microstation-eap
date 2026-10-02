@@ -160,6 +160,8 @@ class Report(object):
             "element_count": len(self.ctx.element_ids),
             "mapping_edition": ed["mapping_edition"],
             "cop_edition": ed["cop_edition"],
+            "cop_published": ed.get("cop_published", ""),
+            "cop_superseded": bool(ed.get("superseded")),
             "library_source": ed["sgpset_source"],
             "library_sgpset_count": ed["sgpset_count"],
             "library_untranscribed": ed["untranscribed_count"],
@@ -256,7 +258,10 @@ class Report(object):
         parts.append(_card("Rule catalogue", [
             ("Mapping edition", h["mapping_edition"], stale_cls),
             ("Mapping age", "%s days" % stale if stale is not None else "unknown", stale_cls),
-            ("COP edition", h["cop_edition"]),
+            ("COP edition", "%s%s%s" % (
+                h["cop_edition"],
+                " (%s)" % h["cop_published"] if h.get("cop_published") else "",
+                " - superseded" if h.get("cop_superseded") else "")),
             ("Source", h["library_source"]),
             ("Built from", h["library_built_from"]),
             ("Property sets", h["library_sgpset_count"]),
@@ -424,8 +429,8 @@ _HTML_HEAD = """<!DOCTYPE html>
 <title>IFC+SG check - %s</title>
 <style>
 :root{
-  --fail:#b3261e; --warn:#8a5a00; --unknown:#5a4a86; --pass:#1b6b30;
-  --line:#dcdcdc; --bg:#f6f7f8; --ink:#1a1a1a; --muted:#61666b;
+  --fail:#c4314b; --warn:#b26a00; --unknown:#6b4fbb; --pass:#13804a;
+  --line:#dde2ea; --bg:#f3f5f8; --ink:#1b2330; --muted:#667085;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}

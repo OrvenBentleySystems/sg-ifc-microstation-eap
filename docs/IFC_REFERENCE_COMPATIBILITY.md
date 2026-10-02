@@ -45,12 +45,15 @@ the source IFC is preferable when that is possible.
 
 ## Deployment
 
-`Deploy.bat` enables the setting in the same organization configuration file
-used by the checker:
+`Deploy.bat` enables the setting in the same configuration file used by the
+checker, written to every detected product:
 
 ```text
-<MicroStation Configuration>\Organization\IFCSG_Checker.cfg
+<product install>\config\appl\IFCSG_Checker.cfg
 ```
+
+Products whose `msconfig.cfg` does not include `config\appl` use
+`<MicroStation Configuration>\Organization\IFCSG_Checker.cfg` instead.
 
 MicroStation must be restarted after installation.
 

@@ -1,22 +1,20 @@
 <#
 .SYNOPSIS
-    Packages the IFC+SG Checker for distribution to other MicroStation users.
+    Packages the IFC+SG Checker for distribution to other users.
 
 .DESCRIPTION
-    Produces a self-contained folder (and optional .zip) holding the tool, the
-    IFC+SG library, the ribbon icon, the installer, and the GUI DGN library that
-    carries the ribbon button. A colleague runs install_ifcsg_checker.ps1 from the
-    unpacked folder and restarts MicroStation.
+    Produces a self-contained folder (and optional .zip) holding the checker,
+    every COP catalogue, Deploy.bat and Uninstall.bat. Recipients unzip it,
+    right-click Deploy.bat > Run as administrator, and restart MicroStation.
 
-    Include the dgnlib once you have created the ribbon button in it: the button
-    then travels with the package and nobody else has to touch the Customize
-    dialog.
+    If the ribbon button was created in the installed GUI DGN library, that
+    library travels with the package and nobody else repeats the Customize steps.
 
 .PARAMETER OutputDir
     Where to build the package. Defaults to the user's Desktop.
 
 .PARAMETER Source
-    Installed tool folder to package. Defaults to C:\ProgramData\Bentley\IFCSG_Checker.
+    Installed tool folder or repository to package. Defaults to the live install.
 
 .PARAMETER DgnLib
     GUI DGN library containing the ribbon button. Auto-detected when omitted.
@@ -46,190 +44,168 @@ if (-not $OutputDir) {
 
 function Write-Step($m) { Write-Host "  $m" }
 
+function Test-CheckerRoot($dir) {
+    return $dir -and (Test-Path (Join-Path $dir "data\catalogues"))
+}
+
 function Find-LiveInstall {
-    # The .cfg is authoritative - it names the folder MicroStation actually loads,
-    # which is not always the default install path.
-    $cfg = Get-ChildItem "C:\ProgramData\Bentley" -Recurse -Filter "IFCSG_Checker.cfg" `
-        -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($cfg) {
-        $hit = Select-String -Path $cfg.FullName -Pattern '^\s*IFCSG_CHECKER_DIR\s*=\s*(.+?)\s*$' |
-            Select-Object -First 1
-        if ($hit) {
-            $dir = $hit.Matches[0].Groups[1].Value.TrimEnd('\')
-            if (Test-Path (Join-Path $dir "data\catalogue.json")) { return $dir }
+    # A registered .cfg names the folder MicroStation actually loads.
+    $roots = @("$env:ProgramFiles\Bentley", "$env:ProgramData\Bentley") | Where-Object { Test-Path $_ }
+    foreach ($root in $roots) {
+        $cfgs = Get-ChildItem $root -Recurse -Depth 5 -Filter "IFCSG_Checker.cfg" -ErrorAction SilentlyContinue
+        foreach ($cfg in $cfgs) {
+            $hit = Select-String -Path $cfg.FullName -Pattern '^\s*IFCSG_CHECKER_DIR\s*=\s*(.+?)\s*$' |
+                Select-Object -First 1
+            if ($hit) {
+                $dir = $hit.Matches[0].Groups[1].Value.TrimEnd('\')
+                if (Test-CheckerRoot $dir) { return $dir }
+            }
         }
     }
-    foreach ($guess in @("C:\ProgramData\Bentley\IFCSG_CheckerApp",
-                         "C:\ProgramData\Bentley\IFCSG_Checker")) {
-        if (Test-Path (Join-Path $guess "data\catalogue.json")) { return $guess }
-    }
+    $default = "C:\ProgramData\Bentley\IFCSG_Checker"
+    if (Test-CheckerRoot $default) { return $default }
     return $null
 }
 
 if (-not $Source) { $Source = Find-LiveInstall }
-if (-not $Source -or -not (Test-Path (Join-Path $Source "data\catalogue.json"))) {
-    throw "No installed IFC+SG Checker found. Run install_ifcsg_checker.ps1 first, or pass -Source."
+if (-not (Test-CheckerRoot $Source)) {
+    throw "No IFC+SG Checker found. Run Deploy.bat first, or pass -Source <repository or install folder>."
 }
 
 if (-not $DgnLib) {
-    $candidate = Get-ChildItem "C:\ProgramData\Bentley" -Recurse -Filter "IFCSG_Checker.dgnlib" `
-        -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($candidate) { $DgnLib = $candidate.FullName }
+    $local = Join-Path $Source "dgnlib\IFCSG_Checker.dgnlib"
+    if (Test-Path $local) { $DgnLib = $local }
 }
 
 $stamp = Get-Date -Format "yyyyMMdd"
-$pkgName = "IFCSG_Checker_$stamp"
+$version = "unknown"
+$init = Join-Path $Source "tools\microstation\ifcsg_checker\__init__.py"
+if (Test-Path $init) {
+    $match = Select-String -Path $init -Pattern '__version__\s*=\s*"([^"]+)"' | Select-Object -First 1
+    if ($match) { $version = $match.Matches[0].Groups[1].Value }
+}
+$pkgName = "IFCSG_Checker_${version}_$stamp"
 $pkg = Join-Path $OutputDir $pkgName
 
-Write-Host "`nPackaging IFC+SG Checker" -ForegroundColor Cyan
+Write-Host "`nPackaging IFC+SG Checker $version" -ForegroundColor Cyan
 Write-Step "source : $Source"
 Write-Step "package: $pkg"
 
 if (Test-Path $pkg) { Remove-Item $pkg -Recurse -Force }
 $null = New-Item -ItemType Directory -Force -Path $pkg
 
-$packageItems = @(
+foreach ($relative in @(
     "data",
     "docs",
     "schema",
     "tools\build_catalogue.py",
+    "tools\validate_catalogue.py",
     "tools\microstation",
     "Deploy.bat",
+    "Uninstall.bat",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE",
     "NOTICE"
-)
-foreach ($relative in $packageItems) {
+)) {
     $item = Join-Path $Source $relative
     if (-not (Test-Path $item)) { continue }
-    $target = Join-Path $pkg $relative
+    $dest = Join-Path $pkg $relative
     if (Test-Path $item -PathType Container) {
-        $null = New-Item -ItemType Directory -Force -Path $target
-        Copy-Item (Join-Path $item "*") $target -Recurse -Force
+        $null = New-Item -ItemType Directory -Force -Path $dest
+        Copy-Item (Join-Path $item "*") $dest -Recurse -Force
     } else {
-        $null = New-Item -ItemType Directory -Force -Path (Split-Path $target -Parent)
-        Copy-Item $item $target -Force
+        $null = New-Item -ItemType Directory -Force -Path (Split-Path $dest -Parent)
+        Copy-Item $item $dest -Force
     }
 }
 Get-ChildItem $pkg -Recurse -Directory -Filter "__pycache__" -ErrorAction SilentlyContinue |
     Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item (Join-Path $pkg "tools\microstation\tests") -Recurse -Force `
-    -ErrorAction SilentlyContinue
-# Exclude a legacy write-back prototype that may remain in an older overlay install.
-# It guessed IFC classes and is not part of the audited checker package.
-Get-ChildItem $pkg -Recurse -File -Filter "ifcsg_harvester.py" -ErrorAction SilentlyContinue |
-    Remove-Item -Force -ErrorAction SilentlyContinue
-Write-Step "copied tool, library and icons"
+Remove-Item (Join-Path $pkg "tools\microstation\tests") -Recurse -Force -ErrorAction SilentlyContinue
+foreach ($legacy in @("tools\microstation\ifcsg_harvester.py", "tools\microstation\install_ribbon_dgnlib.ps1",
+                      "data\catalogue.json")) {
+    Remove-Item (Join-Path $pkg $legacy) -Force -ErrorAction SilentlyContinue
+}
+foreach ($required in @("Deploy.bat", "Uninstall.bat", "tools\microstation\install_ifcsg_checker.ps1")) {
+    if (-not (Test-Path (Join-Path $pkg $required))) { throw "Package is missing $required" }
+}
+Write-Step "copied checker and catalogues"
 
-$edition = "unknown"
-$psets = "?"
-$cataloguePath = Join-Path $pkg "data\catalogue.json"
-if (Test-Path $cataloguePath) {
+$editions = @()
+foreach ($file in (Get-ChildItem (Join-Path $pkg "data\catalogues") -Filter "*.json")) {
     try {
-        $j = Get-Content $cataloguePath -Raw | ConvertFrom-Json
-        if ($j.metadata.mapping_edition) { $edition = $j.metadata.mapping_edition }
-        $psets = @($j.property_sets).Count
+        $meta = (Get-Content $file.FullName -Raw | ConvertFrom-Json).metadata
+        $editions += "COP {0} (mapping {1})" -f $meta.cop_edition, $meta.mapping_edition
     } catch { }
 }
-Write-Step "library: mapping edition $edition, $psets SGPsets"
+$editionText = ($editions | Sort-Object -Descending) -join ", "
+Write-Step "catalogues: $editionText"
 
 if ($DgnLib -and (Test-Path $DgnLib)) {
     $null = New-Item -ItemType Directory -Force -Path (Join-Path $pkg "dgnlib")
     Copy-Item $DgnLib (Join-Path $pkg "dgnlib\IFCSG_Checker.dgnlib") -Force
-    Write-Step "included ribbon dgnlib from $DgnLib"
+    Write-Step "included ribbon library from $DgnLib"
 } else {
-    Write-Warning "  No IFCSG_Checker.dgnlib found. The package will install the tool but"
-    Write-Warning "  each user will have to create the ribbon button themselves."
+    Write-Step "no ribbon library included; recipients use the key-in or Start menu"
 }
 
 $readme = @"
-IFC+SG Checker for MicroStation
-===============================
+IFC+SG Checker $version for MicroStation
+========================================
 
-A CORENET X pre-flight checker. Reads an IFC file opened natively or attached as
-a reference, evaluates the IFC+SG rule set, and reports which objects conform.
-Selecting a finding selects the matching geometry in MicroStation.
+CORENET X pre-flight checker. Reads an IFC file opened or referenced in
+MicroStation (or browsed from disk), checks it against the selected CORENET X
+Code of Practice edition, and selects failing objects in MicroStation.
 
-This is an unofficial plugin for MicroStation created by Orven Fajardo. It is
-not an official Bentley Systems plugin, product, or support offering. Bentley
-Systems does not maintain or endorse it.
+Unofficial tool by Orven Fajardo. Not a Bentley Systems product. Not the
+official CORENET X Model Checker. The Qualified Person remains responsible.
 
-Bundled catalogue: mapping edition $edition, $psets property sets.
+Included COP editions: $editionText
 
-DEPLOY - 3 STEPS
-----------------
-1. Copy this whole folder to the target machine. Anywhere local is fine.
+INSTALL
+-------
+1. Unzip this folder anywhere on the machine.
+2. Right-click Deploy.bat > Run as administrator.
+3. Restart MicroStation.
 
-2. Right-click  Deploy.bat  and choose  Run as administrator.
-   That installs the tool, the library, the MicroStation configuration and, if
-   this package includes one, the ribbon button library.
+Deploy.bat registers the checker with every MicroStation-based product it
+finds: MicroStation CONNECT Edition, 2023, 2024, 2025, 2026 and PowerPlatform
+products such as OpenBuildings, OpenRoads, OpenPlant and Descartes.
 
-3. Restart MicroStation. The configuration is only read at start-up.
+OPEN IT
+-------
+MicroStation 2024 or later - key-in:
 
-HOW TO OPEN IT
---------------
-Key-in (Utilities > Key-in, or press Enter twice):
+    python load `$(IFCSG_CHECKER_LAUNCHER)
 
-    python load C:\ProgramData\Bentley\IFCSG_Checker\tools\microstation\run_ifcsg_checker.py
+Any release, or no MicroStation at all - Start menu > IFC+SG Checker.
+That window has the same checks and reports; use Browse IFC to pick a file.
+MicroStation CONNECT Edition and 2023 have no MicroStation Python, so use the
+Start menu route there. It uses the Python that ships with MicroStation 2024+,
+or any Python 3.10+ with tcl/tk from python.org.
 
-Type it once and it stays in the key-in history drop-down afterwards.
+CHOOSE THE COP EDITION
+----------------------
+Use the Code of Practice drop-down at the top right of the checker window. The
+newest edition is the default. An older edition is flagged as superseded in
+the window and in every report.
 
-A ribbon button appears only if the dgnlib in this package was customised to
-carry one. If there is no button, use the key-in - it works either way.
+UNINSTALL
+---------
+Right-click Uninstall.bat > Run as administrator.
 
-OPTIONAL - MAKE YOUR OWN BUTTON
--------------------------------
-File > Settings > Configuration > Customize. Open
+NOTES
+-----
+Deploy.bat sets IFC_ALLOW_DEPRECATED_SCHEMA=1 (Bentley KB0098741) so trusted
+legacy IFC files can be referenced. To keep Bentley's default, run:
 
-    <MicroStation Configuration>\Organization\Dgnlib\Gui\IFCSG_Checker.dgnlib
+    powershell -ExecutionPolicy Bypass -File tools\microstation\install_ifcsg_checker.ps1 -DisableDeprecatedIfcSchemas
 
-Add a Toolbox, then a Tool whose Key-in is the line above, and save. Then
-File > Settings > User > Customize Ribbon to place it on a tab. Redistribute that
-dgnlib and nobody else repeats this.
-
-REQUIREMENTS
-------------
-MicroStation CONNECT / 2026 or OpenBuildings Designer. No Python installation and
-no third-party packages are needed: the tool runs on MicroStation's embedded
-Python and uses only the standard library.
-
-IFC REFERENCE COMPATIBILITY
----------------------------
-Deployment enables IFC_ALLOW_DEPRECATED_SCHEMA=1, the compatibility setting
-documented in Bentley KB0098741. It allows trusted IFC files with deprecated
-schema definitions to be opened, imported or referenced. It does not repair an
-invalid IFC or make a legacy schema valid for IFC+SG submission.
-
-To keep Bentley's default restriction, run install_ifcsg_checker.ps1 with
--DisableDeprecatedIfcSchemas instead of Deploy.bat.
-
-MAPPING EDITION - READ THIS
----------------------------
-The bundled catalogue was checked against the official BCA industry mapping
-workbook. Its edition and source hashes are stamped in every report.
-
-Before relying on this for a submission, rebuild the library from the current BCA
-industry workbook:
-
-    python tools\build_catalogue.py "industry-mapping-<date>.xlsx" ^
-        --mapping-edition <date> --cop-edition <n>
-
-The catalogue update runs outside MicroStation and uses only the Python standard
-library. The checker UI does not modify its catalogue.
-
-This is a pre-flight aid, not a compliance determination. The Qualified Person
-remains responsible for reviewing code compliance.
+Organisations that assign MS_GUIDGNLIBLIST with '=' in their own configuration
+must add the line from IFCSG_Checker.cfg themselves to see the ribbon button.
 "@
 Set-Content -Path (Join-Path $pkg "README.txt") -Value $readme -Encoding UTF8
 Write-Step "wrote README.txt"
-
-$template = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) "Deploy.bat"
-if (Test-Path $template) {
-    Copy-Item $template (Join-Path $pkg "Deploy.bat") -Force
-    Write-Step "wrote Deploy.bat"
-} else {
-    Write-Warning "  Deploy.bat missing; recipients must run the installer by hand."
-}
 
 if ($Zip) {
     $zipPath = "$pkg.zip"

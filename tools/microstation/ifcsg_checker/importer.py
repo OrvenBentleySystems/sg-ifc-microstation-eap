@@ -48,7 +48,7 @@ HEADER_ALIASES = {
     "component": ("identified component", "component"),
 }
 
-# Normalised to the vocabulary accepted by data/catalogue.json.
+# Normalised to the vocabulary accepted by data/catalogues/*.json.
 TYPE_ALIASES = {
     "label": "Label", "text": "Label", "string": "Label", "str": "Label",
     "ifclabel": "Label", "ifctext": "Label",
@@ -584,6 +584,17 @@ def xlsx_sections(path):
                     bucket = space_values.setdefault(prop, [])
                     if value not in bucket:
                         bucket.append(value)
+            continue
+
+        # "<Property Words> Enum" sheets carry the controlled list for a single
+        # property, e.g. "Industrial Activity Type Enum" -> IndustrialActivityType.
+        if _sheet.strip().lower().endswith(" enum") and rows and len(rows[0]) >= 2:
+            prop = re.sub(r"[^A-Za-z0-9]", "", _sheet.strip()[:-len(" enum")].title())
+            column = next((j for j, cell in enumerate(rows[0])
+                           if "enum" in _norm(cell) or "input" in _norm(cell)), 1)
+            values = [_cell(row, column) for row in rows[1:] if _cell(row, column)]
+            if prop and values:
+                space_values[prop] = list(dict.fromkeys(values))
     if components:
         out["identified_components"] = {
             "items": sorted(
@@ -704,7 +715,12 @@ def sha256(path):
 
 
 def _catalogue_path(library_root):
-    return os.path.join(library_root, "data", "catalogue.json")
+    """Newest catalogue under library_root, or the legacy single file."""
+    from .library import Library, catalogue_paths
+    if not catalogue_paths(library_root):
+        raise ImportError_("No catalogue under %s" % os.path.join(
+            library_root, "data", "catalogues"))
+    return Library.available(library_root)[0].path
 
 
 def _atomic_json_dump(path, payload):
@@ -728,8 +744,8 @@ def _atomic_json_dump(path, payload):
         raise
 
 
-def load_catalogue(library_root):
-    path = _catalogue_path(library_root)
+def load_catalogue(library_root, catalogue_path=None):
+    path = catalogue_path or _catalogue_path(library_root)
     if not os.path.isfile(path):
         raise ImportError_("Catalogue not found: %s" % path)
     with open(path, "r", encoding="utf-8") as fh:
@@ -739,16 +755,28 @@ def load_catalogue(library_root):
     return payload
 
 
+def _property_keys(psets):
+    return set((item["name"], prop["name"])
+               for item in psets for prop in item.get("properties") or [])
+
+
 def merge(library_root, path, mapping_edition=None, cop_edition=None,
-          replace=False, log=None):
-    """Import path into the catalogue. Returns a summary dict."""
+          replace=False, log=None, catalogue_path=None, previous=None):
+    """Import path into a catalogue. Returns a summary dict.
+
+    previous: the prior official workbook. Property definitions it published
+    that path no longer publishes are removed, so a renamed or withdrawn
+    property is reported instead of silently accepted.
+    """
     say = log or (lambda _m: None)
+    target_path = catalogue_path or _catalogue_path(library_root)
     say("Reading %s ..." % os.path.basename(path))
     incoming = parse(path)
     say("Recognised %d property set(s), %d property definition(s)."
         % (len(incoming), sum(len(p.get("properties") or []) for p in incoming)))
 
     extension = os.path.splitext(path)[1].lower()
+    authoritative = extension == ".xlsx"
     if extension == ".json":
         sections = json_sections(path)
     elif extension == ".xlsx":
@@ -758,19 +786,40 @@ def merge(library_root, path, mapping_edition=None, cop_edition=None,
     mapping_edition = mapping_edition or sections.get("mapping_edition")
     cop_edition = cop_edition or sections.get("cop_edition")
     controlled_values = sections.get("space_values", {})
-    if controlled_values:
-        for entry in incoming:
-            for prop in entry.get("properties", []):
-                values = controlled_values.get(prop.get("name"))
-                if values:
-                    prop["enum_values"] = list(values)
-                    prop["controlled"] = True
+    for entry in incoming:
+        for prop in entry.get("properties", []):
+            values = controlled_values.get(prop.get("name"))
+            if values:
+                prop["enum_values"] = list(values)
+                prop["controlled"] = True
+            elif any(str(v).lower().startswith("refer to")
+                     for v in prop.get("enum_values") or []):
+                # A pointer to another sheet is not an accepted value.
+                prop["enum_values"] = []
 
-    catalogue = load_catalogue(library_root)
+    catalogue = load_catalogue(library_root, target_path)
     if replace:
         catalogue["property_sets"] = []
         catalogue.setdefault("metadata", {})["sources"] = []
         say("Existing catalogue cleared before import.")
+
+    removed = []
+    if previous:
+        say("Comparing with previous workbook %s ..." % os.path.basename(previous))
+        gone = _property_keys(parse(previous)) - _property_keys(incoming)
+        for item in catalogue.get("property_sets", []):
+            keep = []
+            for prop in item.get("properties") or []:
+                if (item.get("name"), prop.get("name")) in gone:
+                    removed.append("%s.%s" % (item.get("name"), prop.get("name")))
+                else:
+                    keep.append(prop)
+            item["properties"] = keep
+        catalogue["property_sets"] = [
+            item for item in catalogue.get("property_sets", [])
+            if item.get("properties")]
+        say("Removed %d property definition(s) withdrawn by the new workbook."
+            % len(removed))
 
     existing = dict(
         (item["name"], item)
@@ -813,7 +862,9 @@ def merge(library_root, path, mapping_edition=None, cop_edition=None,
                 current["type"] = prop["type"]
                 retyped_props += 1
                 updated = True
-            if prop.get("enum_values") and not current.get("enum_values"):
+            if prop.get("enum_values") and (
+                    not current.get("enum_values")
+                    or (authoritative and current.get("enum_values") != prop["enum_values"])):
                 current["enum_values"] = prop["enum_values"]
                 current["controlled"] = True
                 enriched_props += 1
@@ -887,10 +938,13 @@ def merge(library_root, path, mapping_edition=None, cop_edition=None,
         "properties_added": added_props,
         "properties_retyped": retyped_props,
         "properties_enriched": enriched_props,
+        "properties_removed": len(removed),
+        "removed": removed,
         "conflicts": conflicts[:50],
         "mapping_edition": provenance["mapping_edition"],
         "cop_edition": provenance["cop_edition"],
         "extras": extras,
+        "catalogue": target_path,
     }
     provenance["build_summary"] = {
         "property_sets": summary["sets_total"],
@@ -899,9 +953,14 @@ def merge(library_root, path, mapping_edition=None, cop_edition=None,
         "sets_updated": summary["sets_updated"],
         "properties_added": summary["properties_added"],
         "properties_retyped": summary["properties_retyped"],
+        "properties_removed": len(removed),
         "datatype_conflicts": len(conflicts),
     }
-    _atomic_json_dump(_catalogue_path(library_root), catalogue)
+    if previous:
+        provenance["removed_properties"] = sorted(removed)
+        provenance["previous_mapping"] = {
+            "name": os.path.basename(previous), "sha256": sha256(previous)}
+    _atomic_json_dump(target_path, catalogue)
 
     say("Catalogue now holds %d property sets and %d properties."
         % (summary["sets_total"], summary["properties_total"]))

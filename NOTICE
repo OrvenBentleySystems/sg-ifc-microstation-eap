@@ -8,8 +8,9 @@ The installer can enable `IFC_ALLOW_DEPRECATED_SCHEMA=1` as documented by
 Bentley KB0098741. This compatibility setting is optional. It broadens accepted
 IFC input and should be used only with trusted legacy files.
 
-`data/catalogue.json` is a derived interoperability catalogue built from the
-public IFC+SG resources identified in its metadata. Those source materials
+`data/catalogues/*.json` are derived interoperability catalogues, one per
+CORENET X Code of Practice edition, built from the public IFC+SG resources
+identified in their metadata. Those source materials
 remain subject to the terms and rights of their respective publishers. The
 catalogue is provided for pre-flight validation and does not replace official
 CORENET X material.

@@ -125,8 +125,10 @@ def main():
         shutil.copytree(os.path.join(ROOT, "data"), os.path.join(test_root, "data"))
         summary = importer.merge(
             test_root, paths["csv"], mapping_edition="2026-09-04")
-        generated = os.path.join(test_root, "data", "catalogue.json")
-        check("merge updates the single catalogue", os.path.isfile(generated))
+        generated = os.path.join(test_root, "data", "catalogues", "cop-4.json")
+        check("merge updates the newest COP catalogue",
+              os.path.isfile(generated) and summary["catalogue"] == generated,
+              summary.get("catalogue", ""))
         check("merge reports imported set",
               summary["sets_total"] >= 1 and summary["properties_total"] >= 1,
               str(summary))

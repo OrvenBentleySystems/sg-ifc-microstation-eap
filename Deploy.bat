@@ -12,7 +12,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\microstation\install_ifcsg_checker.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\microstation\install_ifcsg_checker.ps1" %*
 if errorlevel 1 (
   echo.
   echo Installation failed. Review the messages above.
@@ -22,6 +22,7 @@ if errorlevel 1 (
 
 echo.
 echo Installation complete. Restart MicroStation.
-echo Key-in: python load $(IFCSG_CHECKER_LAUNCHER)
+echo   MicroStation 2024 or later : key-in  python load $(IFCSG_CHECKER_LAUNCHER)
+echo   Any other release           : Start menu, IFC+SG Checker
 echo.
 pause

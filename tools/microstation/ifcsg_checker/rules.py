@@ -1262,6 +1262,10 @@ def _doc_001(ctx):
                      "industry mapping workbook")
     if ed["cop_edition"] == "NOT SET":
         notes.append("no COP edition was recorded at build time")
+    if ed.get("superseded"):
+        notes.append("COP %s was selected but COP %s is installed and newer; use the "
+                     "superseded edition only for projects still assessed under it"
+                     % (ed["cop_edition"], ed["latest_cop"]))
 
     if notes:
         return _mk(ctx, "DOC.001", WARN,

@@ -7,6 +7,7 @@ licence.  Run:  python uicheck.py
 
 import os
 import sys
+import tempfile
 import tkinter as tk
 import time
 from tkinter import font as tkfont
@@ -15,6 +16,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from ifcsg_checker import ui as ui_mod  # noqa: E402
 from ifcsg_checker import spf as spf_mod  # noqa: E402
+from ifcsg_checker import sources as sources_mod  # noqa: E402
+
+FIXTURE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tests", "fixture.ifc")
 
 FAILURES = []
 
@@ -26,6 +30,8 @@ def check(label, ok, detail=""):
 
 
 def main():
+    ui_mod.SETTINGS_PATH = os.path.join(
+        tempfile.mkdtemp(prefix="ifcsg-ui-"), "window.json")
     win = ui_mod.CheckerWindow(dock=False)
     win.update_idletasks()
 
@@ -99,6 +105,63 @@ def main():
     cancelled = _pump_until(win, lambda: not win.busy)
     check("worker cancellation completes cleanly", cancelled)
     check("cancelled worker does not publish a result", completed == [42], str(completed))
+
+    print("COP selector")
+    labels = list(win.cop_box["values"])
+    check("selector lists every installed edition", len(labels) >= 2, " / ".join(labels))
+    check("newest edition preselected",
+          win.library.editions["cop_edition"] == "4" and win.cop_box.current() == 0)
+    check("no warning banner on the newest edition", not win.warn_lbl.winfo_ismapped())
+    win.sources = [sources_mod.browsed_source(FIXTURE)]
+    win.source_box["values"] = [s.label for s in win.sources]
+    win.source_box.current(0)
+    win.run_check()
+    check("fixture check completes", _pump_until(win, lambda: not win.busy, 15.0)
+          and win.report is not None)
+    first = win.report.header()["cop_edition"] if win.report else None
+    chip = win.chips[ui_mod.FAIL].cget("text")
+    check("status chips show counts after a check", chip.split()[-1].isdigit(), chip)
+    older = next(i for i, e in enumerate(win.editions) if e.cop_edition == "3.1")
+    win.cop_box.current(older)
+    win.on_cop_change()
+    check("changing COP re-checks the parsed model",
+          _pump_until(win, lambda: not win.busy, 15.0)
+          and win.report is not None
+          and win.report.header()["cop_edition"] == "3.1" and first == "4")
+    win.update()
+    check("superseded edition shows the warning banner",
+          win.warn_lbl.winfo_ismapped() and "superseded" in win.warn_lbl.cget("text"))
+    check("COP choice is remembered",
+          ui_mod._load_settings().get("cop") == "3.1")
+    win.cop_box.current(0)
+    win.on_cop_change()
+    _pump_until(win, lambda: not win.busy, 15.0)
+    win.update()
+    check("returning to the newest edition clears the banner",
+          not win.warn_lbl.winfo_ismapped())
+
+    real_engine, real_error = ui_mod.Engine, ui_mod.messagebox.showerror
+    for label, exc in (("cancelled", spf_mod.OperationCancelled("stop")),
+                       ("failed", RuntimeError("boom"))):
+        class _Stub(object):
+            def __init__(self, _lib):
+                pass
+
+            def run(self, *_a, **_k):
+                raise exc
+        ui_mod.Engine = _Stub
+        ui_mod.messagebox.showerror = lambda *a, **k: None
+        try:
+            win.cop_box.current(older)
+            win.on_cop_change()
+            _pump_until(win, lambda: not win.busy, 15.0)
+        finally:
+            ui_mod.Engine, ui_mod.messagebox.showerror = real_engine, real_error
+        check("%s re-check keeps the previous COP and its results" % label,
+              win.library.editions["cop_edition"] == "4"
+              and win.report.header()["cop_edition"] == "4"
+              and win.cop_box.current() == 0
+              and ui_mod._load_settings().get("cop") == "4")
 
     print("Columns fit the window")
     fixed = sum(win.tree.column(c, "width") for c in ("#0", "status", "entity", "name"))

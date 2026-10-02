@@ -42,6 +42,12 @@
         "authoritative_mapping": { "type": "boolean" },
         "official_mapping_url": { "type": "string" },
         "official_cop_url": { "type": "string" },
+        "cop_title": { "type": "string" },
+        "cop_published": { "type": "string", "pattern": "^\\d{4}-\\d{2}$" },
+        "cop_url": { "type": "string" },
+        "cop_changes_url": { "type": "string" },
+        "removed_properties": { "type": "array", "items": { "type": "string" } },
+        "previous_mapping": { "type": "object" },
         "disclaimer": { "type": "string" },
         "sources": {
           "type": "array",

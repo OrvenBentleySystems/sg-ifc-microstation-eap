@@ -10,16 +10,21 @@
 
 ## Catalogue updates
 
-Use the current official BCA mapping workbook:
+Use the current official BCA mapping workbook. For a new COP edition:
 
 ```powershell
-python tools\build_catalogue.py "industry-mapping.xlsx" `
+python tools\build_catalogue.py "industry-mapping-NEW.xlsx" `
+  --cop-edition VERSION --from PREVIOUS_VERSION `
   --mapping-edition YYYY-MM-DD `
-  --cop-edition VERSION
+  --previous-mapping "industry-mapping-PREVIOUS.xlsx" `
+  --cop-published YYYY-MM
 ```
 
-Review the changed source hashes, property counts, and datatype changes before
-committing `data/catalogue.json`.
+To refresh an existing edition, omit `--from` and `--previous-mapping`.
+
+Review the changed source hashes, property counts, datatype changes and
+`removed_properties` before committing `data/catalogues/`. Run
+`python tools\validate_catalogue.py`.
 
 ## Tests
 
@@ -29,6 +34,7 @@ Run:
 python tools\microstation\tests\featuretest.py
 python tools\microstation\tests\stabilitytest.py
 python tools\microstation\tests\cataloguetest.py
+python tools\microstation\tests\coptest.py
 python tools\microstation\tests\sourcetest.py
 python tools\microstation\tests\locatortest.py
 python tools\microstation\uicheck.py

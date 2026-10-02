@@ -15,6 +15,7 @@ jobs:
       - run: python tools/microstation/tests/featuretest.py
       - run: python tools/microstation/tests/stabilitytest.py
       - run: python tools/microstation/tests/cataloguetest.py
+      - run: python tools/microstation/tests/coptest.py
       - run: python tools/microstation/tests/sourcetest.py
       - run: python tools/microstation/tests/locatortest.py
       - run: python tools/validate_catalogue.py

@@ -1,14 +1,14 @@
 {
-  "$schema": "../schema/ifcsg.catalogue.schema.json",
+  "$schema": "../../schema/ifcsg.catalogue.schema.json",
   "format": "ifcsg-checker-catalogue",
   "format_version": 1,
   "version": "1.0.0",
   "metadata": {
     "authority": "Building and Construction Authority, Singapore",
-    "mapping_edition": "2025-12-04",
-    "cop_edition": "3.1",
-    "built_at": "2026-09-04T12:43:57.742683+00:00",
-    "verified_at": "2026-09-04",
+    "mapping_edition": "2026-09-25",
+    "cop_edition": "4",
+    "built_at": "2026-10-02T04:54:38.438300+00:00",
+    "verified_at": "2026-09-25",
     "complete": true,
     "authoritative_mapping": true,
     "sources": [
@@ -23,21 +23,51 @@
         "sha256": "f436aa273c366f04dcf6eef55e365081a8b76a2271520c188174a1c69f803114",
         "kind": "xlsx",
         "imported_at": "2026-09-04T12:43:57.742683+00:00"
+      },
+      {
+        "name": "industry-mapping-09-2026.xlsx",
+        "sha256": "d0346db4ada59d9fef5858794102e1404b8139c368f9efcc87547b913f1e0309",
+        "kind": "xlsx",
+        "imported_at": "2026-10-02T04:54:38.438300+00:00"
       }
     ],
     "official_mapping_url": "https://info.corenet.gov.sg/ifc-sg/requirements---submission/ifc-sg-excel-mapping-file",
     "official_cop_url": "https://info.corenet.gov.sg/regulatory-process/corenet-x-code-of-practice",
     "disclaimer": "This is a pre-flight aid, not a compliance determination. The Qualified Person remains responsible for code compliance.",
-    "builder_version": "importer 1.3.0",
+    "builder_version": "importer 1.4.0",
     "build_summary": {
-      "property_sets": 163,
-      "properties": 1620,
-      "sets_added": 0,
-      "sets_updated": 0,
-      "properties_added": 0,
-      "properties_retyped": 0,
-      "datatype_conflicts": 0
-    }
+      "property_sets": 172,
+      "properties": 1762,
+      "sets_added": 9,
+      "sets_updated": 55,
+      "properties_added": 155,
+      "properties_retyped": 17,
+      "properties_removed": 13,
+      "datatype_conflicts": 17
+    },
+    "cop_title": "CORENET X Code of Practice 4th Edition",
+    "cop_published": "2026-09",
+    "removed_properties": [
+      "SGPset_CivilElementDimension.SystemName",
+      "SGPset_CivilElementDimension.SystemType",
+      "SGPset_Door.OperationType",
+      "SGPset_Door.SelfClosing",
+      "SGPset_DoorDimension.OverallWidth",
+      "SGPset_GeographicElement.ShrubSpecies",
+      "SGPset_InterceptorDimension.SystemName",
+      "SGPset_InterceptorDimension.SystemType",
+      "SGPset_PipeSegmentDimension.InnerDiameter",
+      "SGPset_SanitaryTerminal.Mounting",
+      "SGPset_Tank.Litre",
+      "SGPset_Wall.DoubleBayFaçade",
+      "SGPset_Wall.IsExternal"
+    ],
+    "previous_mapping": {
+      "name": "industry-mapping-4-dec-2025.xlsx",
+      "sha256": "a5babc13c18932072b7489c264bd48b05adcc86b14f750ef60387403cebf0d9a"
+    },
+    "cop_url": "https://info.corenet.gov.sg/docs/default-source/default-document-library/corenet-x-cop---4-edition-2026.pdf",
+    "cop_changes_url": "https://info.corenet.gov.sg/docs/default-source/default-document-library/annex---summary-of-changes-cop-edition-4.pdf"
   },
   "property_sets": [
     {
@@ -89,7 +119,8 @@
       ],
       "agencies": [
         "SCDF",
-        "NEA"
+        "NEA",
+        "BCA"
       ],
       "gateways": [],
       "verified": true,
@@ -123,6 +154,28 @@
             "4"
           ],
           "example_values": []
+        },
+        {
+          "name": "IsExternal",
+          "type": "Boolean",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "TRUE/FALSE"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "SelfClosing",
+          "type": "Boolean",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "TRUE/FALSE"
+          ],
+          "example_values": []
         }
       ]
     },
@@ -145,6 +198,90 @@
       "properties": [
         {
           "name": "Purpose",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        }
+      ]
+    },
+    {
+      "name": "Pset_PipeSegmentTypeCommon",
+      "binding": "I",
+      "entities": [
+        "IfcPipeSegment"
+      ],
+      "subtypes": [],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "PUB"
+      ],
+      "gateways": [],
+      "verified": true,
+      "source": "industry-mapping-09-2026.xlsx#CX Pilot Mapping",
+      "properties": [
+        {
+          "name": "InnerDiameter",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        }
+      ]
+    },
+    {
+      "name": "Pset_SanitaryTerminalTypeUrinal",
+      "binding": "I",
+      "entities": [
+        "IfcSanitaryTerminal"
+      ],
+      "subtypes": [],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "NEA"
+      ],
+      "gateways": [],
+      "verified": true,
+      "source": "industry-mapping-09-2026.xlsx#CX Pilot Mapping",
+      "properties": [
+        {
+          "name": "Mounting",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        }
+      ]
+    },
+    {
+      "name": "Pset_SanitaryTerminalTypeWashHandBasin",
+      "binding": "I",
+      "entities": [
+        "IfcSanitaryTerminal"
+      ],
+      "subtypes": [],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "NEA"
+      ],
+      "gateways": [],
+      "verified": true,
+      "source": "industry-mapping-09-2026.xlsx#CX Pilot Mapping",
+      "properties": [
+        {
+          "name": "Mounting",
           "type": "Label",
           "unit": "N.A",
           "required": false,
@@ -274,6 +411,45 @@
           "required": false,
           "controlled": false,
           "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "Capacity",
+          "type": "Volume",
+          "unit": "m3",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        }
+      ]
+    },
+    {
+      "name": "Pset_WallCommon",
+      "binding": "I",
+      "entities": [
+        "IfcWall"
+      ],
+      "subtypes": [],
+      "disciplines": [
+        "STR"
+      ],
+      "agencies": [
+        "BCA"
+      ],
+      "gateways": [],
+      "verified": true,
+      "source": "industry-mapping-09-2026.xlsx#CX Pilot Mapping",
+      "properties": [
+        {
+          "name": "IsExternal",
+          "type": "Boolean",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "TRUE/FALSE"
+          ],
           "example_values": []
         }
       ]
@@ -599,6 +775,32 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
@@ -650,7 +852,36 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
+      ],
+      "agencies": [
+        "SCDF"
       ]
     },
     {
@@ -826,6 +1057,32 @@
           "required": false,
           "controlled": false,
           "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
           "example_values": []
         }
       ],
@@ -1829,7 +2086,8 @@
       "name": "SGPset_BuildingElementProxy",
       "binding": "I",
       "entities": [
-        "IfcBuildingElementProxy"
+        "IfcBuildingElementProxy",
+        "IfcSpace"
       ],
       "subtypes": [],
       "verified": true,
@@ -2774,6 +3032,50 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "SystemType",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "SystemName",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
       ],
       "agencies": [
@@ -2781,7 +3083,10 @@
         "BCA",
         "LTA",
         "NPARKS",
-        "URA"
+        "URA",
+        "NEA",
+        "ALL",
+        "NParks"
       ]
     },
     {
@@ -2879,6 +3184,15 @@
           "name": "SHDLevel_SPT_MoreThan_60N",
           "type": "Real",
           "unit": "SHD m",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "Thickness",
+          "type": "Length",
+          "unit": "mm",
           "required": false,
           "controlled": false,
           "enum_values": [],
@@ -3286,7 +3600,7 @@
         },
         {
           "name": "ModelName",
-          "type": "Boolean",
+          "type": "Label",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -3295,7 +3609,7 @@
         },
         {
           "name": "SoundPowerLevel",
-          "type": "Label",
+          "type": "Real",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -3304,11 +3618,141 @@
         },
         {
           "name": "SoundPressureLevel",
-          "type": "Label",
+          "type": "Real",
           "unit": null,
           "required": false,
           "controlled": false,
           "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "RefrigerantType",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        }
+      ],
+      "agencies": [
+        "BCA",
+        "NEA"
+      ]
+    },
+    {
+      "name": "SGPset_ChillerDimension",
+      "binding": "I",
+      "entities": [
+        "IfcChiller"
+      ],
+      "subtypes": [],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "BCA"
+      ],
+      "gateways": [],
+      "verified": true,
+      "source": "industry-mapping-09-2026.xlsx#CX Pilot Mapping",
+      "properties": [
+        {
+          "name": "Height",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "Length",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "Width",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        }
+      ]
+    },
+    {
+      "name": "SGPset_Chimney",
+      "binding": "I",
+      "entities": [
+        "IfcChimney"
+      ],
+      "subtypes": [],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "NEA"
+      ],
+      "gateways": [],
+      "verified": true,
+      "source": "industry-mapping-09-2026.xlsx#CX Pilot Mapping",
+      "properties": [
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
           "example_values": []
         }
       ]
@@ -3510,12 +3954,40 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
         "LTA",
         "PUB",
-        "SCDF"
+        "SCDF",
+        "All",
+        "BCA"
       ]
     },
     {
@@ -3587,24 +4059,6 @@
           "name": "Width",
           "type": "Length",
           "unit": "mm",
-          "required": false,
-          "controlled": false,
-          "enum_values": [],
-          "example_values": []
-        },
-        {
-          "name": "SystemName",
-          "type": "Label",
-          "unit": "N.A",
-          "required": false,
-          "controlled": false,
-          "enum_values": [],
-          "example_values": []
-        },
-        {
-          "name": "SystemType",
-          "type": "Label",
-          "unit": "N.A",
           "required": false,
           "controlled": false,
           "enum_values": [],
@@ -3723,6 +4177,32 @@
           "required": false,
           "controlled": false,
           "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
           "example_values": []
         }
       ],
@@ -4159,7 +4639,7 @@
       "properties": [
         {
           "name": "ModelName",
-          "type": "Boolean",
+          "type": "Label",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -4168,7 +4648,7 @@
         },
         {
           "name": "SoundPowerLevel",
-          "type": "Label",
+          "type": "Real",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -4177,7 +4657,7 @@
         },
         {
           "name": "SoundPressureLevel",
-          "type": "Label",
+          "type": "Real",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -4192,7 +4672,36 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
+      ],
+      "agencies": [
+        "NEA"
       ]
     },
     {
@@ -4207,7 +4716,7 @@
       "properties": [
         {
           "name": "ModelName",
-          "type": "Boolean",
+          "type": "Label",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -4216,7 +4725,7 @@
         },
         {
           "name": "SoundPowerLevel",
-          "type": "Label",
+          "type": "Real",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -4225,8 +4734,95 @@
         },
         {
           "name": "SoundPressureLevel",
-          "type": "Label",
+          "type": "Real",
           "unit": null,
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "MaintenancePlatformProvided",
+          "type": "Boolean",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "TRUE/FALSE"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
+        }
+      ],
+      "agencies": [
+        "BCA",
+        "NEA"
+      ]
+    },
+    {
+      "name": "SGPset_CoolingTowerrDimension",
+      "binding": "I",
+      "entities": [
+        "IfcCoolingTower"
+      ],
+      "subtypes": [],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "BCA"
+      ],
+      "gateways": [],
+      "verified": true,
+      "source": "industry-mapping-09-2026.xlsx#CX Pilot Mapping",
+      "properties": [
+        {
+          "name": "Height",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "Length",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "Width",
+          "type": "Length",
+          "unit": "mm",
           "required": false,
           "controlled": false,
           "enum_values": [],
@@ -4506,11 +5102,39 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
         "NEA",
-        "BCA"
+        "BCA",
+        "SCDF",
+        "All"
       ]
     },
     {
@@ -4627,7 +5251,36 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
+      ],
+      "agencies": [
+        "URA"
       ]
     },
     {
@@ -4683,6 +5336,32 @@
           "required": false,
           "controlled": false,
           "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
           "example_values": []
         }
       ],
@@ -4857,6 +5536,32 @@
             "TRUE/FALSE"
           ],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
@@ -4953,6 +5658,19 @@
           "controlled": true,
           "enum_values": [
             "TRUE/FALSE"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
           ],
           "example_values": []
         }
@@ -5872,26 +6590,6 @@
           "example_values": []
         },
         {
-          "name": "OperationType",
-          "type": "Label",
-          "unit": "N.A",
-          "required": false,
-          "controlled": false,
-          "enum_values": [],
-          "example_values": []
-        },
-        {
-          "name": "SelfClosing",
-          "type": "Boolean",
-          "unit": "N.A",
-          "required": false,
-          "controlled": true,
-          "enum_values": [
-            "TRUE/FALSE"
-          ],
-          "example_values": []
-        },
-        {
           "name": "VisionPanel",
           "type": "Boolean",
           "unit": "N.A",
@@ -5901,12 +6599,59 @@
             "TRUE/FALSE"
           ],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "ShadingCoefficient_Glass",
+          "type": "Real",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "0 to 1"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "ThermalTransmittance",
+          "type": "Real",
+          "unit": "W/m2K",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
       ],
       "agencies": [
         "SCDF",
         "NEA",
-        "BCA"
+        "BCA",
+        "All"
       ]
     },
     {
@@ -5939,15 +6684,6 @@
         },
         {
           "name": "ClearWidth",
-          "type": "Length",
-          "unit": "mm",
-          "required": false,
-          "controlled": false,
-          "enum_values": [],
-          "example_values": []
-        },
-        {
-          "name": "OverallWidth",
           "type": "Length",
           "unit": "mm",
           "required": false,
@@ -6402,7 +7138,36 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
+      ],
+      "agencies": [
+        "NEA"
       ]
     },
     {
@@ -6453,7 +7218,7 @@
         },
         {
           "name": "ModelName",
-          "type": "Boolean",
+          "type": "Label",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -6462,7 +7227,7 @@
         },
         {
           "name": "SoundPowerLevel",
-          "type": "Label",
+          "type": "Real",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -6471,7 +7236,7 @@
         },
         {
           "name": "SoundPressureLevel",
-          "type": "Label",
+          "type": "Real",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -6486,7 +7251,45 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "SystemName",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
+      ],
+      "agencies": [
+        "NEA"
       ]
     },
     {
@@ -6736,6 +7539,32 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
@@ -6876,6 +7705,32 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
@@ -7014,6 +7869,32 @@
           "required": false,
           "controlled": false,
           "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
           "example_values": []
         }
       ],
@@ -7450,10 +8331,38 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
-        "SCDF"
+        "SCDF",
+        "BCA",
+        "URA"
       ]
     },
     {
@@ -7942,15 +8851,6 @@
           "example_values": []
         },
         {
-          "name": "ShrubSpecies",
-          "type": "Label",
-          "unit": "N.A",
-          "required": false,
-          "controlled": false,
-          "enum_values": [],
-          "example_values": []
-        },
-        {
           "name": "HedgeNumber",
           "type": "Label",
           "unit": "N.A",
@@ -8044,11 +8944,48 @@
             "White"
           ],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Location",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Roadside",
+            "Within development site",
+            "Within PCN/Park",
+            "Within adjacent land"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "VestedLandType",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
       ],
       "agencies": [
         "URA",
-        "NPARKS"
+        "NPARKS",
+        "NParks"
       ]
     },
     {
@@ -8186,6 +9123,50 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "SystemType",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "SystemName",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
       ],
       "agencies": [
@@ -8265,24 +9246,6 @@
           "enum_values": [
             "TRUE/FALSE"
           ],
-          "example_values": []
-        },
-        {
-          "name": "SystemType",
-          "type": "Label",
-          "unit": "N.A",
-          "required": false,
-          "controlled": false,
-          "enum_values": [],
-          "example_values": []
-        },
-        {
-          "name": "SystemName",
-          "type": "Label",
-          "unit": "N.A",
-          "required": false,
-          "controlled": false,
-          "enum_values": [],
           "example_values": []
         }
       ],
@@ -8365,7 +9328,37 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
+      ],
+      "agencies": [
+        "BCA",
+        "SCDF"
       ]
     },
     {
@@ -8391,7 +9384,8 @@
         "IfcStairFlight",
         "IfcWall",
         "IfcWasteTerminal",
-        "IfcWindow"
+        "IfcWindow",
+        "IfcBuildingElementProxy"
       ],
       "subtypes": [],
       "verified": true,
@@ -8402,8 +9396,62 @@
           "type": "Label",
           "unit": null,
           "required": false,
-          "controlled": false,
-          "enum_values": [],
+          "controlled": true,
+          "enum_values": [
+            "Asphalt",
+            "Bitumen",
+            "Brick Brick (dry)",
+            "Brick (common)",
+            "Concrete",
+            "Concrete (64)",
+            "Reinforced Concrete",
+            "Lightweight Concrete",
+            "Lightweight Concrete (960)",
+            "Lightweight Concrete (1120)",
+            "Lightweight Concrete (1280)",
+            "Cork board",
+            "Fibre board",
+            "Fibre glass",
+            "Glass",
+            "Glass wool",
+            "Mineral wool",
+            "Gypsum plaster board",
+            "Hard board",
+            "Hard board (Standard)",
+            "Hard board (Medium)",
+            "Metal",
+            "Aluminium alloy",
+            "Aluminium",
+            "Copper",
+            "Steel",
+            "Plaster",
+            "Gypsum",
+            "Perlite",
+            "Sand cement",
+            "Vermiculite",
+            "Polystyrene",
+            "Polystyrene (expanded)",
+            "Polyurethane (foam)",
+            "PVC flooring",
+            "Soil",
+            "Stone",
+            "Tile",
+            "Sandstone",
+            "Granite",
+            "Marble",
+            "Terrazzo",
+            "Ceramic",
+            "Mosaic",
+            "Roof Tile",
+            "Timber",
+            "Softwood",
+            "Hardwood",
+            "Plywood",
+            "Wood chipboard",
+            "Woodwool slab",
+            "Woodwool slab (400)",
+            "Woodwool slab (480)"
+          ],
           "example_values": []
         },
         {
@@ -8439,6 +9487,15 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "MaterialType",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
       ],
       "agencies": [
@@ -8448,7 +9505,8 @@
         "LTA",
         "NEA",
         "NParks",
-        "URA"
+        "URA",
+        "All"
       ]
     },
     {
@@ -8636,7 +9694,36 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
+      ],
+      "agencies": [
+        "BCA"
       ]
     },
     {
@@ -8842,6 +9929,32 @@
           "required": false,
           "controlled": false,
           "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
           "example_values": []
         }
       ],
@@ -9470,6 +10583,19 @@
             "Prefabricated"
           ],
           "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
@@ -9962,13 +11088,40 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
         "NEA",
         "BCA",
         "NPARKS",
-        "PUB"
+        "PUB",
+        "ALL"
       ]
     },
     {
@@ -10001,15 +11154,6 @@
         },
         {
           "name": "Height",
-          "type": "Length",
-          "unit": null,
-          "required": false,
-          "controlled": false,
-          "enum_values": [],
-          "example_values": []
-        },
-        {
-          "name": "InnerDiameter",
           "type": "Length",
           "unit": null,
           "required": false,
@@ -10125,7 +11269,7 @@
         },
         {
           "name": "Capacity",
-          "type": "Volume",
+          "type": "Real",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -10273,7 +11417,7 @@
         },
         {
           "name": "PumpHead",
-          "type": "Real",
+          "type": "Length",
           "unit": "m",
           "required": false,
           "controlled": false,
@@ -10297,10 +11441,83 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Width",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
       ],
       "agencies": [
-        "PUB"
+        "PUB",
+        "BCA"
+      ]
+    },
+    {
+      "name": "SGPset_PumpDimension",
+      "binding": "I",
+      "entities": [
+        "IfcPump"
+      ],
+      "subtypes": [],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "BCA"
+      ],
+      "gateways": [],
+      "verified": true,
+      "source": "industry-mapping-09-2026.xlsx#CX Pilot Mapping",
+      "properties": [
+        {
+          "name": "Height",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "Length",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        }
       ]
     },
     {
@@ -10395,6 +11612,32 @@
           "controlled": true,
           "enum_values": [
             "TRUE/FALSE"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
           ],
           "example_values": []
         }
@@ -10543,11 +11786,38 @@
             "TRUE/FALSE"
           ],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
         "BCA",
-        "LTA"
+        "LTA",
+        "All"
       ]
     },
     {
@@ -10581,7 +11851,8 @@
       ],
       "agencies": [
         "BCA",
-        "LTA"
+        "LTA",
+        "All"
       ]
     },
     {
@@ -10722,10 +11993,37 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
-        "BCA"
+        "BCA",
+        "All"
       ]
     },
     {
@@ -10873,15 +12171,6 @@
           "example_values": []
         },
         {
-          "name": "Mounting",
-          "type": "Label",
-          "unit": "N.A",
-          "required": false,
-          "controlled": false,
-          "enum_values": [],
-          "example_values": []
-        },
-        {
           "name": "Waterless",
           "type": "Boolean",
           "unit": "N.A",
@@ -10908,6 +12197,32 @@
           "required": false,
           "controlled": false,
           "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
           "example_values": []
         }
       ],
@@ -11308,7 +12623,36 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
+      ],
+      "agencies": [
+        "NEA"
       ]
     },
     {
@@ -11436,6 +12780,32 @@
           "required": false,
           "controlled": false,
           "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
           "example_values": []
         }
       ],
@@ -11587,10 +12957,38 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "CXBlockID",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "BuildabilityBlock",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "PurposeGroup",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
       ],
       "agencies": [
-        "URA"
+        "URA",
+        "All"
       ]
     },
     {
@@ -11839,10 +13237,37 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
-        "BCA"
+        "BCA",
+        "All"
       ]
     },
     {
@@ -12542,7 +13967,7 @@
             "Workshop",
             "Bar",
             "Pub",
-            "Café",
+            "Cafe",
             "Cafeteria",
             "Canteen",
             "Food Stall",
@@ -12691,7 +14116,7 @@
             "Balancing Pump Room",
             "Domestic Pump Room",
             "Irrigation Pump Room",
-            "Portable Water Pump Room",
+            "Potable Water Pump Room",
             "Sprinkler Pump Room",
             "Pumped Sanitary System Room",
             "Pumped Drainage System Room",
@@ -13272,6 +14697,269 @@
             "TRUE/FALSE"
           ],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "IndustrialActivityType",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "SS593-AnnexA-01",
+            "SS593-AnnexA-02",
+            "SS593-AnnexA-03",
+            "SS593-AnnexA-04",
+            "SS593-AnnexA-05",
+            "SS593-AnnexA-06",
+            "SS593-AnnexA-07",
+            "SS593-AnnexA-08",
+            "SS593-AnnexA-09",
+            "SS593-AnnexA-10",
+            "SS593-AnnexA-11",
+            "SS593-AnnexA-12",
+            "SS593-AnnexA-13",
+            "SS593-AnnexB-01",
+            "SS593-AnnexB-02",
+            "SS593-AnnexB-03",
+            "SS593-AnnexB-04",
+            "SS593-AnnexB-05",
+            "SS593-AnnexB-06",
+            "SS593-AnnexB-07",
+            "SS593-AnnexB-08",
+            "SS593-AnnexB-09",
+            "SS593-AnnexB-10",
+            "SS593-AnnexB-11",
+            "SS593-AnnexB-12",
+            "SS593-AnnexB-13",
+            "SS593-AnnexB-14",
+            "SS593-AnnexB-15",
+            "SS593-AnnexB-16",
+            "SS593-AnnexB-17",
+            "SS593-AnnexB-18",
+            "SS593-AnnexB-19",
+            "SS593-AnnexC-F01",
+            "SS593-AnnexC-F02",
+            "SS593-AnnexC-F03",
+            "SS593-AnnexC-01",
+            "SS593-AnnexC-02",
+            "SS593-AnnexC-03",
+            "SS593-AnnexC-04",
+            "SS593-AnnexC-05",
+            "SS593-AnnexC-06",
+            "SS593-AnnexC-07",
+            "SS593-AnnexC-08",
+            "SS593-AnnexC-09",
+            "SS593-AnnexC-10",
+            "SS593-AnnexC-11",
+            "SS593-AnnexC-12",
+            "SS593-AnnexC-13",
+            "SS593-AnnexC-14",
+            "SS593-AnnexC-15",
+            "SS593-AnnexC-16",
+            "SS593-AnnexC-17",
+            "SS593-AnnexC-18",
+            "SS593-AnnexC-19",
+            "SS593-AnnexC-20",
+            "SS593-AnnexC-21",
+            "SS593-AnnexC-22",
+            "SS593-AnnexC-23",
+            "SS593-AnnexC-24",
+            "SS593-AnnexC-25",
+            "SS593-AnnexC-26",
+            "SS593-AnnexC-27",
+            "SS593-AnnexC-28",
+            "SS593-AnnexC-29",
+            "SS593-AnnexC-30",
+            "SS593-AnnexC-31",
+            "SS593-AnnexC-32",
+            "SS593-AnnexC-33",
+            "SS593-AnnexC-34",
+            "SS593-AnnexC-35",
+            "SS593-AnnexC-36",
+            "SS593-AnnexC-37",
+            "SS593-AnnexC-38",
+            "SS593-AnnexD-F01",
+            "SS593-AnnexD-F02",
+            "SS593-AnnexD-F03",
+            "SS593-AnnexD-F04",
+            "SS593-AnnexD-F05",
+            "SS593-AnnexD-F06",
+            "SS593-AnnexD-F07",
+            "SS593-AnnexD-F08",
+            "SS593-AnnexD-01",
+            "SS593-AnnexD-02",
+            "SS593-AnnexD-03",
+            "SS593-AnnexD-04",
+            "SS593-AnnexD-05",
+            "SS593-AnnexD-06",
+            "SS593-AnnexD-07",
+            "SS593-AnnexD-08",
+            "SS593-AnnexD-09",
+            "SS593-AnnexD-10",
+            "SS593-AnnexD-11",
+            "SS593-AnnexD-12",
+            "SS593-AnnexD-13",
+            "SS593-AnnexD-14",
+            "SS593-AnnexD-15",
+            "SS593-AnnexD-16",
+            "SS593-AnnexD-17",
+            "SS593-AnnexD-18",
+            "SS593-AnnexD-19",
+            "SS593-AnnexD-20",
+            "SS593-AnnexD-21",
+            "SS593-AnnexD-22",
+            "SS593-AnnexD-23",
+            "SS593-AnnexD-24",
+            "SS593-AnnexD-25",
+            "SS593-AnnexD-26",
+            "SS593-AnnexD-27",
+            "SS593-AnnexD-28",
+            "SS593-AnnexD-29",
+            "SS593-AnnexD-30",
+            "SS593-AnnexD-31",
+            "SS593-AnnexD-32",
+            "SS593-AnnexD-33",
+            "SS593-AnnexD-34",
+            "SS593-AnnexD-35",
+            "SS593-AnnexD-36",
+            "SS593-AnnexD-37",
+            "SS593-AnnexD-38",
+            "SS593-AnnexD-39",
+            "SS593-AnnexD-40",
+            "SS593-AnnexD-41",
+            "SS593-AnnexD-42",
+            "SS593-AnnexD-43",
+            "SS593-AnnexD-44",
+            "SS593-AnnexD-45",
+            "SS593-AnnexD-46",
+            "SS593-AnnexD-47",
+            "SS593-AnnexD-48",
+            "SS593-AnnexD-49",
+            "SS593-AnnexD-50",
+            "SS593-AnnexD-51",
+            "SS593-AnnexD-52",
+            "SS593-AnnexD-53",
+            "SS593-AnnexD-54",
+            "SS593-AnnexD-55",
+            "SS593-AnnexD-56",
+            "SS593-AnnexD-57",
+            "SS593-AnnexE-E1i",
+            "SS593-AnnexE-E1ii",
+            "SS593-AnnexE-E1iii",
+            "SS593-AnnexE-E1iv",
+            "SS593-AnnexE-E1v",
+            "SS593-AnnexE-E1vi",
+            "SS593-AnnexE-E1vii",
+            "SS593-AnnexE-E1viii",
+            "SS593-AnnexE-E1ix",
+            "SS593-AnnexE-E1x",
+            "SS593-AnnexE-E1xi",
+            "SS593-AnnexE-E1xii",
+            "SS593-AnnexE-E1xiii",
+            "SS593-AnnexE-E1xiv",
+            "SS593-AnnexE-E2",
+            "SS593-AnnexE-E3i",
+            "SS593-AnnexE-E3ii"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "RefuseChuteID",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "RecyclablesChuteID",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "ServedByRefuseChuteID",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "ServedByRecyclablesChuteID",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "ServedByRefuseStorageID",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "ServedByRecyclablesStorageID",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "RefuseStorageID",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "RecyclablesStorageID",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
       ],
       "agencies": [
@@ -13279,7 +14967,8 @@
         "LTA",
         "SCDF",
         "All",
-        "PUB"
+        "PUB",
+        "NEA"
       ]
     },
     {
@@ -13880,11 +15569,56 @@
             "Vehicular Parking Area"
           ],
           "example_values": []
+        },
+        {
+          "name": "AirImpuritiesGeneration",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "No Air Impurities",
+            "Air Emission Complied With EPMA (AI) Reg",
+            "Air Pollution Control Equipment Provided"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "TradeEffluentGeneration",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "No Trade Effluent",
+            "Trade Effluent Complied With Allowable Discharge Limits",
+            "Trade Effluent Treatment Facility Provided"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "AGF_DetailedUse",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AGF_UnitType",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
       ],
       "agencies": [
         "BCA",
-        "URA"
+        "URA",
+        "NEA"
       ]
     },
     {
@@ -14603,6 +16337,32 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
@@ -14685,6 +16445,32 @@
           "required": false,
           "controlled": false,
           "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
           "example_values": []
         }
       ],
@@ -15329,7 +17115,36 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
+      ],
+      "agencies": [
+        "BCA"
       ]
     },
     {
@@ -15476,8 +17291,10 @@
           "type": "Label",
           "unit": null,
           "required": false,
-          "controlled": false,
-          "enum_values": [],
+          "controlled": true,
+          "enum_values": [
+            "DIN 30722"
+          ],
           "example_values": []
         },
         {
@@ -15521,8 +17338,10 @@
           "type": "Boolean",
           "unit": null,
           "required": false,
-          "controlled": false,
-          "enum_values": [],
+          "controlled": true,
+          "enum_values": [
+            "TRUE / FALSE"
+          ],
           "example_values": []
         },
         {
@@ -15701,9 +17520,57 @@
           "example_values": []
         },
         {
-          "name": "Litre",
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "NominalCapacity",
           "type": "Real",
-          "unit": "L",
+          "unit": "m3",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "StateOfMatter",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "SOLID",
+            "LIQUID",
+            "GAS"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "HazardousSubstancesExclusion",
+          "type": "Label",
+          "unit": "N.A",
           "required": false,
           "controlled": false,
           "enum_values": [],
@@ -15863,11 +17730,39 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Proposed",
+            "Existing",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
         "BCA",
-        "SCDF"
+        "SCDF",
+        "LTA",
+        "NEA"
       ]
     },
     {
@@ -16634,11 +18529,38 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
         "NEA",
-        "SCDF"
+        "SCDF",
+        "All"
       ]
     },
     {
@@ -16680,7 +18602,7 @@
         },
         {
           "name": "ModelName",
-          "type": "Boolean",
+          "type": "Label",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -16698,7 +18620,7 @@
         },
         {
           "name": "SoundPowerLevel",
-          "type": "Label",
+          "type": "Real",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -16707,7 +18629,7 @@
         },
         {
           "name": "SoundPressureLevel",
-          "type": "Label",
+          "type": "Real",
           "unit": null,
           "required": false,
           "controlled": false,
@@ -17235,10 +19157,137 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Type",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "EquipmentType",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "FuelType",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "FuelBurningRate",
+          "type": "Real",
+          "unit": "kg/hr",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "MaxContinuousRatingOfSteam",
+          "type": "Real",
+          "unit": "kg/hr",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
       ],
       "agencies": [
-        "NEA"
+        "NEA",
+        "BCA"
+      ]
+    },
+    {
+      "name": "SGPset_UnitaryEquipmentDimension",
+      "binding": "I",
+      "entities": [
+        "IfcUnitaryEquipment"
+      ],
+      "subtypes": [],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "BCA"
+      ],
+      "gateways": [],
+      "verified": true,
+      "source": "industry-mapping-09-2026.xlsx#CX Pilot Mapping",
+      "properties": [
+        {
+          "name": "Capacity",
+          "type": "Integer",
+          "unit": "kW",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "Height",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "Length",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "Width",
+          "type": "Length",
+          "unit": "mm",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
+        }
       ]
     },
     {
@@ -17483,6 +19532,32 @@
           "required": false,
           "controlled": false,
           "enum_values": [],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
           "example_values": []
         }
       ],
@@ -17805,28 +19880,6 @@
           "example_values": []
         },
         {
-          "name": "DoubleBayFaçade",
-          "type": "Boolean",
-          "unit": "N.A",
-          "required": false,
-          "controlled": true,
-          "enum_values": [
-            "TRUE/FALSE"
-          ],
-          "example_values": []
-        },
-        {
-          "name": "IsExternal",
-          "type": "Boolean",
-          "unit": "N.A",
-          "required": false,
-          "controlled": true,
-          "enum_values": [
-            "TRUE/FALSE"
-          ],
-          "example_values": []
-        },
-        {
           "name": "LoadBearing",
           "type": "Boolean",
           "unit": "N.A",
@@ -17850,6 +19903,43 @@
         },
         {
           "name": "PrefinishedFaçade",
+          "type": "Boolean",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "TRUE/FALSE"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "DoubleBayFacade",
           "type": "Boolean",
           "unit": "N.A",
           "required": false,
@@ -18165,6 +20255,32 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
         }
       ],
       "agencies": [
@@ -18354,11 +20470,58 @@
           "controlled": false,
           "enum_values": [],
           "example_values": []
+        },
+        {
+          "name": "AmendmentStatus",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Added",
+            "Modified",
+            "Removed"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "ShadingCoefficientGlass",
+          "type": "Real",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "0 to 1"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "Status",
+          "type": "Label",
+          "unit": "N.A",
+          "required": false,
+          "controlled": true,
+          "enum_values": [
+            "Existing",
+            "Proposed",
+            "Demolished"
+          ],
+          "example_values": []
+        },
+        {
+          "name": "ThermalTransmittance",
+          "type": "Real",
+          "unit": "W/m2K",
+          "required": false,
+          "controlled": false,
+          "enum_values": [],
+          "example_values": []
         }
       ],
       "agencies": [
         "SCDF",
-        "BCA"
+        "BCA",
+        "All"
       ]
     },
     {
@@ -18880,8 +21043,8 @@
       "entity": "IfcSpace",
       "subtypes": [],
       "property_sets": [
-        "SGPset_SpaceDimension",
-        "SGPset_Space"
+        "SGPset_Space",
+        "SGPset_SpaceDimension"
       ],
       "disciplines": [
         "ARC"
@@ -18906,6 +21069,20 @@
       ],
       "agencies": [
         "BCA"
+      ]
+    },
+    {
+      "name": "Block",
+      "entity": "IfcSite",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Site"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "All"
       ]
     },
     {
@@ -18937,10 +21114,56 @@
       ]
     },
     {
+      "name": "Building Cooling System",
+      "entity": "IfcChiller",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Chiller",
+        "SGPset_ChillerDimension"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "BCA"
+      ]
+    },
+    {
+      "name": "Building Cooling System",
+      "entity": "IfcCoolingTower",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_CoolingTower",
+        "SGPset_CoolingTowerrDimension"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "BCA"
+      ]
+    },
+    {
+      "name": "Building Cooling System",
+      "entity": "IfcUnitaryEquipment",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_UnitaryEquipment",
+        "SGPset_UnitaryEquipmentDimension"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "BCA"
+      ]
+    },
+    {
       "name": "Ceiling",
       "entity": "IfcCovering",
       "subtypes": [],
       "property_sets": [
+        "SGPset_Covering",
         "Pset_CoveringCommon",
         "SGPset_Material"
       ],
@@ -18956,10 +21179,10 @@
       "entity": "IfcColumn",
       "subtypes": [],
       "property_sets": [
+        "SGPset_Column",
         "SGPset_PrecastConcreteElementGeneral",
         "SGPset_ColumnDimension",
         "SGPset_SteelConnection",
-        "SGPset_Column",
         "SGPset_ColumnReinforcement",
         "SGPset_Material",
         "SGPset_ColumnStructuralLoad"
@@ -18982,6 +21205,7 @@
         "MEP"
       ],
       "agencies": [
+        "All",
         "NEA",
         "SCDF"
       ]
@@ -18991,8 +21215,8 @@
       "entity": "IfcCivilElement",
       "subtypes": [],
       "property_sets": [
-        "SGPset_CivilElementDimension",
         "SGPset_CivilElement",
+        "SGPset_CivilElementDimension",
         "SGPset_Material"
       ],
       "disciplines": [
@@ -19000,8 +21224,23 @@
         "STR"
       ],
       "agencies": [
+        "All",
         "PUB",
         "LTA"
+      ]
+    },
+    {
+      "name": "Curtain Wall",
+      "entity": "IfcCurtainWall",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_CurtainWall"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "URA"
       ]
     },
     {
@@ -19037,8 +21276,8 @@
       "entity": "IfcDistributionChamberElement",
       "subtypes": [],
       "property_sets": [
-        "SGPset_DistributionChamberElementDimension",
         "SGPset_DistributionChamberElement",
+        "SGPset_DistributionChamberElementDimension",
         "SGPset_Material"
       ],
       "disciplines": [
@@ -19053,8 +21292,8 @@
       "entity": "IfcDoor",
       "subtypes": [],
       "property_sets": [
-        "SGPset_DoorDimension",
         "SGPset_Door",
+        "SGPset_DoorDimension",
         "Pset_DoorCommon",
         "SGPset_Material"
       ],
@@ -19062,9 +21301,10 @@
         "ARC"
       ],
       "agencies": [
+        "All",
         "SCDF",
-        "NEA",
-        "BCA"
+        "BCA",
+        "NEA"
       ]
     },
     {
@@ -19072,8 +21312,8 @@
       "entity": "IfcGeographicElement",
       "subtypes": [],
       "property_sets": [
-        "SGPset_GeographicElementDimension",
-        "SGPset_GeographicElement"
+        "SGPset_GeographicElement",
+        "SGPset_GeographicElementDimension"
       ],
       "disciplines": [
         "ARC"
@@ -19083,10 +21323,67 @@
       ]
     },
     {
+      "name": "Envelope Control",
+      "entity": "IfcBuildingElementProxy",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_BuildingElementProxy"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "URA"
+      ]
+    },
+    {
+      "name": "Escalator",
+      "entity": "IfcTransportElement",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_TransportElement"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "BCA"
+      ]
+    },
+    {
+      "name": "Family-Friendly Furniture",
+      "entity": "IfcFurniture",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Furniture"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "BCA"
+      ]
+    },
+    {
+      "name": "Finishes",
+      "entity": "IfcBuildingElementProxy",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_BuildingElementProxy"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "BCA"
+      ]
+    },
+    {
       "name": "Finishes",
       "entity": "IfcCovering",
       "subtypes": [],
       "property_sets": [
+        "SGPset_Covering",
         "Pset_CoveringCommon",
         "SGPset_Material"
       ],
@@ -19140,6 +21437,20 @@
       ]
     },
     {
+      "name": "Fire Alarm",
+      "entity": "IfcAlarm",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Alarm"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "SCDF"
+      ]
+    },
+    {
       "name": "Fire Extinguisher",
       "entity": "IfcBuildingElementProxy",
       "subtypes": [],
@@ -19186,9 +21497,9 @@
       "entity": "IfcFooting",
       "subtypes": [],
       "property_sets": [
+        "SGPset_Footing",
         "SGPset_FootingReinforcement",
         "SGPset_FootingDimension",
-        "SGPset_Footing",
         "SGPset_Material",
         "SGPset_FoundationStructuralLoad"
       ],
@@ -19201,9 +21512,24 @@
     },
     {
       "name": "Footpath",
+      "entity": "IfcBuildingElementProxy",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_BuildingElementProxy"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "BCA"
+      ]
+    },
+    {
+      "name": "Footpath",
       "entity": "IfcCivilElement",
       "subtypes": [],
       "property_sets": [
+        "SGPset_CivilElement",
         "SGPset_Material",
         "SGPset_CivilElementDimension"
       ],
@@ -19302,12 +21628,53 @@
     },
     {
       "name": "Household Shelter",
+      "entity": "IfcLightFixture",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_LightFixture"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "BCA"
+      ]
+    },
+    {
+      "name": "Household Shelter",
+      "entity": "IfcOutlet",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Outlet"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "BCA"
+      ]
+    },
+    {
+      "name": "Household Shelter",
       "entity": "IfcSpace",
       "subtypes": [],
       "property_sets": [
         "SGPset_Space",
-        "SGPset_SpaceDimension",
-        "SGPset_SpaceArea_GFA"
+        "SGPset_SpaceDimension"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "BCA"
+      ]
+    },
+    {
+      "name": "Household Shelter",
+      "entity": "IfcSwitchingDevice",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_SwitchingDevice"
       ],
       "disciplines": [
         "ARC"
@@ -19347,12 +21714,26 @@
       ]
     },
     {
+      "name": "Lamp Post",
+      "entity": "IfcCivilElement",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_CivilElement"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "LTA"
+      ]
+    },
+    {
       "name": "Landscape Plants",
       "entity": "IfcGeographicElement",
       "subtypes": [],
       "property_sets": [
-        "SGPset_GeographicElementDimension",
-        "SGPset_GeographicElement"
+        "SGPset_GeographicElement",
+        "SGPset_GeographicElementDimension"
       ],
       "disciplines": [
         "ARC"
@@ -19379,6 +21760,50 @@
       ]
     },
     {
+      "name": "Lightning Protection",
+      "entity": "IfcBuildingElementProxy",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_BuildingElementProxy",
+        "SGPset_BuildingElementProxyDimension",
+        "SGPset_Material"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "BCA"
+      ]
+    },
+    {
+      "name": "On-site Food Waste Treatment System",
+      "entity": "IfcBuildingElementProxy",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_BuildingElementProxy"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
+      "name": "On-site Food Waste Treatment System",
+      "entity": "IfcUnitaryEquipment",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_UnitaryEquipment"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
       "name": "Parking Lot",
       "entity": "IfcBuildingElementProxy",
       "subtypes": [],
@@ -19390,6 +21815,7 @@
         "ARC"
       ],
       "agencies": [
+        "ALL",
         "BCA",
         "LTA",
         "NPARKS"
@@ -19526,12 +21952,14 @@
       "property_sets": [
         "SGPset_PipeSegment",
         "SGPset_Material",
+        "Pset_PipeSegmentTypeCommon",
         "SGPset_PipeSegmentDimension"
       ],
       "disciplines": [
         "MEP"
       ],
       "agencies": [
+        "ALL",
         "BCA",
         "NPARKS",
         "PUB",
@@ -19539,18 +21967,160 @@
       ]
     },
     {
-      "name": "Planting Areas",
-      "entity": "IfcGeographicElement",
+      "name": "Planter Box/ Planting Trough",
+      "entity": "IfcBuildingElementProxy",
       "subtypes": [],
       "property_sets": [
-        "SGPset_GeographicElementDimension",
-        "SGPset_GeographicElement"
+        "SGPset_BuildingElementProxy"
       ],
       "disciplines": [
         "ARC"
       ],
       "agencies": [
+        "NParks"
+      ]
+    },
+    {
+      "name": "Planter Box/ Planting Trough",
+      "entity": "IfcFurniture",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Furniture"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "URA"
+      ]
+    },
+    {
+      "name": "Planting Areas",
+      "entity": "IfcGeographicElement",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_GeographicElement",
+        "SGPset_GeographicElementDimension"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "NParks",
         "NPARKS"
+      ]
+    },
+    {
+      "name": "Pollution Control",
+      "entity": "IfcChiller",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Chiller"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
+      "name": "Pollution Control",
+      "entity": "IfcChimney",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Chimney"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
+      "name": "Pollution Control",
+      "entity": "IfcCondenser",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Condenser"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
+      "name": "Pollution Control",
+      "entity": "IfcCoolingTower",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_CoolingTower"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
+      "name": "Pollution Control",
+      "entity": "IfcElectricGenerator",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_ElectricGenerator"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
+      "name": "Pollution Control",
+      "entity": "IfcFan",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Fan"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
+      "name": "Pollution Control",
+      "entity": "IfcSpace",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Space",
+        "SGPset_SpaceArea_GFA"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
+      "name": "Pollution Control",
+      "entity": "IfcTank",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Tank"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "NEA"
       ]
     },
     {
@@ -19559,6 +22129,21 @@
       "subtypes": [],
       "property_sets": [
         "SGPset_UnitaryEquipment"
+      ],
+      "disciplines": [
+        "ARC",
+        "MEP"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
+      "name": "Pollution Control",
+      "entity": "IfcWall",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Wall"
       ],
       "disciplines": [
         "ARC"
@@ -19701,13 +22286,29 @@
       "entity": "IfcPump",
       "subtypes": [],
       "property_sets": [
-        "SGPset_Pump"
+        "SGPset_Pump",
+        "SGPset_PumpDimension"
       ],
       "disciplines": [
         "MEP"
       ],
       "agencies": [
-        "PUB"
+        "PUB",
+        "BCA"
+      ]
+    },
+    {
+      "name": "Racking System",
+      "entity": "IfcFurniture",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Furniture"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "URA"
       ]
     },
     {
@@ -19715,9 +22316,9 @@
       "entity": "IfcRailing",
       "subtypes": [],
       "property_sets": [
+        "SGPset_Railing",
         "SGPset_RailingDimension",
-        "SGPset_Material",
-        "SGPset_Railing"
+        "SGPset_Material"
       ],
       "disciplines": [
         "ARC",
@@ -19732,16 +22333,61 @@
       "entity": "IfcRamp",
       "subtypes": [],
       "property_sets": [
-        "SGPset_RampDimension",
         "SGPset_Ramp",
+        "SGPset_RampDimension",
         "SGPset_Material"
       ],
       "disciplines": [
         "ARC"
       ],
       "agencies": [
+        "All",
         "BCA",
         "LTA"
+      ]
+    },
+    {
+      "name": "Refuse / Recyclables Storage System",
+      "entity": "IfcSpace",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Space"
+      ],
+      "disciplines": [
+        "ARC"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
+      "name": "Refuse / Recyclables Storage System",
+      "entity": "IfcTank",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Tank",
+        "Pset_TankTypeCommon",
+        "SGPset_Material"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "NEA"
+      ]
+    },
+    {
+      "name": "Refuse / Recyclables Storage System",
+      "entity": "IfcTransportElement",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_TransportElement"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "NEA"
       ]
     },
     {
@@ -19778,22 +22424,6 @@
     },
     {
       "name": "Refuse Chute / Recyclables Chute",
-      "entity": "IfcTank",
-      "subtypes": [],
-      "property_sets": [
-        "SGPset_Tank",
-        "Pset_TankTypeCommon",
-        "SGPset_Material"
-      ],
-      "disciplines": [
-        "MEP"
-      ],
-      "agencies": [
-        "NEA"
-      ]
-    },
-    {
-      "name": "Refuse Chute / Recyclables Chute",
       "entity": "IfcWall",
       "subtypes": [],
       "property_sets": [
@@ -19807,14 +22437,14 @@
       ]
     },
     {
-      "name": "Refuse Handling Equipment",
-      "entity": "IfcTank",
+      "name": "Refuse Truck Swept Path / Class C Waste Collection Truck Temporary Parking Location",
+      "entity": "IfcBuildingElementProxy",
       "subtypes": [],
       "property_sets": [
-        "SGPset_Tank"
+        "SGPset_BuildingElementProxy"
       ],
       "disciplines": [
-        "MEP"
+        "ARC"
       ],
       "agencies": [
         "NEA"
@@ -19825,8 +22455,8 @@
       "entity": "IfcBuildingElementProxy",
       "subtypes": [],
       "property_sets": [
-        "SGPset_BuildingElementProxyDimension",
-        "SGPset_BuildingElementProxy"
+        "SGPset_BuildingElementProxy",
+        "SGPset_BuildingElementProxyDimension"
       ],
       "disciplines": [
         "ARC"
@@ -19848,6 +22478,7 @@
         "ARC"
       ],
       "agencies": [
+        "All",
         "SCDF",
         "LTA"
       ]
@@ -19864,9 +22495,7 @@
         "ARC"
       ],
       "agencies": [
-        "SCDF",
-        "LTA",
-        "NEA"
+        "All"
       ]
     },
     {
@@ -19881,6 +22510,7 @@
         "ARC"
       ],
       "agencies": [
+        "All",
         "BCA",
         "NParks"
       ]
@@ -19897,6 +22527,7 @@
         "ARC"
       ],
       "agencies": [
+        "All",
         "BCA",
         "NParks"
       ]
@@ -19913,6 +22544,7 @@
         "ARC"
       ],
       "agencies": [
+        "All",
         "BCA",
         "NParks"
       ]
@@ -19978,7 +22610,8 @@
       "entity": "IfcSanitaryTerminal",
       "subtypes": [],
       "property_sets": [
-        "SGPset_SanitaryTerminal"
+        "SGPset_SanitaryTerminal",
+        "Pset_SanitaryTerminalTypeUrinal"
       ],
       "disciplines": [
         "ARC",
@@ -19995,7 +22628,8 @@
       "entity": "IfcSanitaryTerminal",
       "subtypes": [],
       "property_sets": [
-        "SGPset_SanitaryTerminal"
+        "SGPset_SanitaryTerminal",
+        "Pset_SanitaryTerminalTypeWashHandBasin"
       ],
       "disciplines": [
         "ARC",
@@ -20035,6 +22669,34 @@
       ],
       "agencies": [
         "SCDF"
+      ]
+    },
+    {
+      "name": "Security Lighting",
+      "entity": "IfcLightFixture",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_LightFixture"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "SCDF"
+      ]
+    },
+    {
+      "name": "Sensor",
+      "entity": "IfcSensor",
+      "subtypes": [],
+      "property_sets": [
+        "SGPset_Sensor"
+      ],
+      "disciplines": [
+        "MEP"
+      ],
+      "agencies": [
+        "NEA"
       ]
     },
     {
@@ -20098,7 +22760,7 @@
     },
     {
       "name": "Site Coverage",
-      "entity": "IfcBuildingElementProxy",
+      "entity": "IfcSpace",
       "subtypes": [],
       "property_sets": [
         "SGPset_BuildingElementProxy"
@@ -20132,6 +22794,7 @@
       "entity": "IfcCovering",
       "subtypes": [],
       "property_sets": [
+        "SGPset_Covering",
         "Pset_CoveringCommon"
       ],
       "disciplines": [
@@ -20208,9 +22871,9 @@
       "subtypes": [],
       "property_sets": [
         "Pset_StairCommon",
+        "SGPset_Stair",
         "SGPset_StairReinforcement",
         "SGPset_StairSteelConnection",
-        "SGPset_Stair",
         "SGPset_StairDimension"
       ],
       "disciplines": [
@@ -20227,9 +22890,9 @@
       "entity": "IfcStairFlight",
       "subtypes": [],
       "property_sets": [
+        "SGPset_StairFlight",
         "Pset_StairFlightCommon",
         "SGPset_Material",
-        "SGPset_StairFlight",
         "SGPset_Stairflight"
       ],
       "disciplines": [
@@ -20306,9 +22969,10 @@
       "subtypes": [],
       "property_sets": [
         "SGPset_Wall",
-        "SGPset_WallReinforcement",
-        "SGPset_WallDimension",
         "SGPset_Material",
+        "SGPset_WallReinforcement",
+        "Pset_WallCommon",
+        "SGPset_WallDimension",
         "SGPset_WallStructuralLoad"
       ],
       "disciplines": [
@@ -20324,16 +22988,16 @@
       "entity": "IfcWasteTerminal",
       "subtypes": [],
       "property_sets": [
-        "SGPset_Material",
-        "SGPset_WasteTerminal"
+        "SGPset_WasteTerminal",
+        "SGPset_Material"
       ],
       "disciplines": [
         "MEP"
       ],
       "agencies": [
+        "All",
         "PUB",
-        "NEA",
-        "All"
+        "NEA"
       ]
     },
     {
@@ -20357,14 +23021,15 @@
       "entity": "IfcWindow",
       "subtypes": [],
       "property_sets": [
-        "SGPset_WindowDimension",
         "SGPset_Window",
+        "SGPset_WindowDimension",
         "SGPset_Material"
       ],
       "disciplines": [
         "ARC"
       ],
       "agencies": [
+        "All",
         "BCA",
         "SCDF",
         "URA"

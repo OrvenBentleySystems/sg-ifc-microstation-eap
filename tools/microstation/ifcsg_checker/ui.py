@@ -45,18 +45,49 @@ try:
 except ImportError:
     TOOL_NAME = "IFC + SG Checker"
 
+PALETTE = {
+    "bg": "#f3f5f8",
+    "surface": "#ffffff",
+    "border": "#dde2ea",
+    "text": "#1b2330",
+    "muted": "#667085",
+    "accent": "#0b6bcb",
+    "accent_hover": "#0a5bb0",
+    "accent_pressed": "#084a91",
+    "accent_disabled": "#9cc3ea",
+    "header": "#0f1b2d",
+    "header_text": "#ffffff",
+    "header_muted": "#9fb0c8",
+    "heading": "#eef1f5",
+    "hover": "#eef2f7",
+    "select": "#dcebfb",
+    "banner": "#fff4e0",
+    "banner_text": "#7a4b00",
+}
+
 STATUS_COLOUR = {
-    FAIL: "#b3261e",
-    WARN: "#8a5a00",
-    UNKNOWN: "#5a4a86",
-    NOT_APPLICABLE: "#666666",
-    PASS: "#1b6b30",
+    FAIL: "#c4314b",
+    WARN: "#b26a00",
+    UNKNOWN: "#6b4fbb",
+    NOT_APPLICABLE: "#7b8494",
+    PASS: "#13804a",
+}
+
+STATUS_TINT = {
+    FAIL: "#fdecef",
+    WARN: "#fff4e0",
+    UNKNOWN: "#f1edfb",
+    NOT_APPLICABLE: "#f1f3f6",
+    PASS: "#e8f6ee",
 }
 
 STATUS_GLYPH = {
     FAIL: "FAIL", WARN: "WARN", UNKNOWN: "UNKNOWN",
     NOT_APPLICABLE: "N/A", PASS: "PASS",
 }
+
+UI_FONT = "Segoe UI"
+UI_FONT_BOLD = "Segoe UI Semibold"
 
 MAX_ROWS_PER_RULE = 2000
 MAX_VISIBLE_FINDINGS = 5000
@@ -98,6 +129,14 @@ def _save_settings(values):
             json.dump(values, fh)
     except Exception:
         pass
+
+
+def _update_settings(**values):
+    current = _load_settings()
+    if not isinstance(current, dict):
+        current = {}
+    current.update(values)
+    _save_settings(current)
 
 
 def _available_physical_memory():
@@ -268,10 +307,11 @@ class MstnTk(tk.Tk):
 
 
 class CheckerWindow(MstnTk):
-    def __init__(self, library_root=None, dock=True):
+    def __init__(self, library_root=None, dock=True, cop=None):
         self.library_root = library_root
-        self.library = Library.discover(library_root)
+        self.library = self._initial_library(library_root, cop)
         self.engine = Engine(self.library)
+        self.editions = []
         self.sources = []
         self.source = None
         self.ifc = None
@@ -284,6 +324,7 @@ class CheckerWindow(MstnTk):
         self._worker_queue = queue.Queue()
         self._worker_callback = None
         self._worker_error_callback = None
+        self._worker_cancel_callback = None
         self._cancel_event = None
         self._poll_job = None
         self._closing = False
@@ -292,6 +333,7 @@ class CheckerWindow(MstnTk):
         MstnTk.__init__(self, dock=dock)
         self.title(TOOL_NAME)
         self.minsize(760, 500)
+        self.configure(background=PALETTE["bg"])
         self.keep_on_top = tk.BooleanVar(value=False)
         self._apply_theme()
         self._build()
@@ -300,22 +342,137 @@ class CheckerWindow(MstnTk):
         self.present()
         self.refresh_sources()
 
+    @staticmethod
+    def _initial_library(library_root, cop):
+        """Explicit edition, else the last one used, else the newest installed."""
+        if cop:
+            return Library.discover(library_root, cop=cop)
+        remembered = _load_settings().get("cop")
+        if remembered:
+            try:
+                return Library.discover(library_root, cop=remembered)
+            except ValueError:
+                pass
+        return Library.discover(library_root)
+
     def _apply_theme(self):
-        """Row height must follow the font, or rows clip and text overlaps."""
+        """Flat, high-contrast theme. Row height must follow the font."""
+        p = PALETTE
         style = ttk.Style(self)
         try:
-            base = tkfont.nametofont("TkDefaultFont")
-            line = base.metrics("linespace")
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
+        for name in ("TkDefaultFont", "TkTextFont", "TkMenuFont", "TkHeadingFont"):
+            try:
+                tkfont.nametofont(name).configure(family=UI_FONT, size=9)
+            except Exception:
+                pass
+        try:
+            line = tkfont.nametofont("TkDefaultFont").metrics("linespace")
         except Exception:
             line = 16
-        style.configure("Treeview", rowheight=max(22, line + 8))
-        style.configure("Treeview.Heading", padding=(3, 3))
+        bold = (UI_FONT_BOLD, 9)
+
+        style.configure(".", background=p["bg"], foreground=p["text"],
+                        bordercolor=p["border"], focuscolor=p["accent"],
+                        troughcolor=p["heading"], selectbackground=p["select"],
+                        selectforeground=p["text"])
+        style.configure("TFrame", background=p["bg"])
+        style.configure("Card.TFrame", background=p["surface"], relief="solid",
+                        borderwidth=1, bordercolor=p["border"])
+        style.configure("Status.TFrame", background=p["surface"])
+        style.configure("Inner.TFrame", background=p["surface"])
+        style.configure("TLabel", background=p["bg"], foreground=p["text"])
+        style.configure("Muted.TLabel", background=p["bg"], foreground=p["muted"])
+        style.configure("Card.TLabel", background=p["surface"], foreground=p["text"])
+        style.configure("CardMuted.TLabel", background=p["surface"], foreground=p["muted"])
+        style.configure("Status.TLabel", background=p["surface"], foreground=p["muted"],
+                        padding=(10, 4))
+        style.configure("Verdict.TLabel", background=p["bg"], font=(UI_FONT_BOLD, 11))
+
+        style.configure("TButton", background=p["surface"], foreground=p["text"],
+                        bordercolor="#c9d0db", lightcolor=p["surface"],
+                        darkcolor=p["surface"], relief="raised", padding=(12, 5))
+        style.map("TButton",
+                  background=[("disabled", p["bg"]), ("pressed", p["heading"]),
+                              ("active", p["hover"])],
+                  foreground=[("disabled", "#a0a8b5")],
+                  bordercolor=[("focus", p["accent"])])
+        style.configure("Accent.TButton", background=p["accent"], foreground="#ffffff",
+                        bordercolor=p["accent"], lightcolor=p["accent"],
+                        darkcolor=p["accent"], font=bold, padding=(16, 5))
+        style.map("Accent.TButton",
+                  background=[("disabled", p["accent_disabled"]),
+                              ("pressed", p["accent_pressed"]),
+                              ("active", p["accent_hover"])],
+                  foreground=[("disabled", "#eef5fd")],
+                  bordercolor=[("disabled", p["accent_disabled"])])
+
+        for name, bg in (("TCheckbutton", p["bg"]), ("Card.TCheckbutton", p["surface"])):
+            style.configure(name, background=bg, foreground=p["text"],
+                            indicatorbackground=p["surface"],
+                            indicatorforeground="#ffffff", padding=(2, 2))
+            style.map(name,
+                      background=[("active", bg)],
+                      indicatorbackground=[("selected", p["accent"]),
+                                           ("active", p["hover"])])
+
+        style.configure("TEntry", fieldbackground=p["surface"], bordercolor=p["border"],
+                        lightcolor=p["surface"], darkcolor=p["surface"], padding=(5, 3))
+        style.map("TEntry", bordercolor=[("focus", p["accent"])],
+                  lightcolor=[("focus", p["accent"])])
+        style.configure("TCombobox", fieldbackground=p["surface"], background=p["surface"],
+                        bordercolor=p["border"], lightcolor=p["surface"],
+                        darkcolor=p["surface"], arrowcolor=p["muted"], padding=(5, 3))
+        style.map("TCombobox",
+                  fieldbackground=[("readonly", p["surface"]), ("disabled", p["bg"])],
+                  selectbackground=[("readonly", p["surface"])],
+                  selectforeground=[("readonly", p["text"])],
+                  bordercolor=[("focus", p["accent"])])
+        self.option_add("*TCombobox*Listbox.font", (UI_FONT, 9))
+        self.option_add("*TCombobox*Listbox.selectBackground", p["select"])
+        self.option_add("*TCombobox*Listbox.selectForeground", p["text"])
+
+        style.configure("TNotebook", background=p["bg"], borderwidth=0,
+                        tabmargins=(0, 6, 0, 0))
+        style.configure("TNotebook.Tab", background=p["bg"], foreground=p["muted"],
+                        bordercolor=p["border"], lightcolor=p["bg"],
+                        padding=(16, 7), font=bold)
+        style.map("TNotebook.Tab",
+                  background=[("selected", p["surface"]), ("active", p["hover"])],
+                  foreground=[("selected", p["accent"])],
+                  lightcolor=[("selected", p["surface"])],
+                  expand=[("selected", (0, 0, 0, 0))])
+
+        style.configure("Treeview", background=p["surface"], fieldbackground=p["surface"],
+                        foreground=p["text"], bordercolor=p["border"],
+                        lightcolor=p["surface"], darkcolor=p["surface"],
+                        rowheight=max(24, line + 9))
+        style.map("Treeview",
+                  background=[("selected", p["select"])],
+                  foreground=[("selected", p["text"])])
+        style.configure("Treeview.Heading", background=p["heading"], foreground="#344054",
+                        bordercolor=p["border"], lightcolor=p["heading"],
+                        darkcolor=p["heading"], relief="flat", padding=(6, 5), font=bold)
+        style.map("Treeview.Heading", background=[("active", p["hover"])])
+
+        style.configure("Horizontal.TProgressbar", background=p["accent"],
+                        troughcolor=p["heading"], bordercolor=p["surface"],
+                        lightcolor=p["accent"], darkcolor=p["accent"], thickness=6)
+        for orient in ("Vertical", "Horizontal"):
+            style.configure("%s.TScrollbar" % orient, background="#cfd5df",
+                            troughcolor=p["surface"], bordercolor=p["surface"],
+                            lightcolor="#cfd5df", darkcolor="#cfd5df",
+                            arrowcolor=p["muted"], gripcount=0)
+            style.map("%s.TScrollbar" % orient,
+                      background=[("active", "#b7bfcc"), ("pressed", "#a3adbc")])
 
     def _on_resize(self, event):
         if event.widget is not self:
             return
         try:
-            self.warn_lbl.configure(wraplength=max(420, event.width - 40))
+            self.warn_lbl.configure(wraplength=max(420, event.width - 60))
         except Exception:
             pass
 
@@ -347,7 +504,7 @@ class CheckerWindow(MstnTk):
     def _close_now(self):
         try:
             if self.state() == "normal":
-                _save_settings({"geometry": self.geometry()})
+                _update_settings(geometry=self.geometry())
         except Exception:
             pass
         if self._poll_job is not None:
@@ -367,42 +524,89 @@ class CheckerWindow(MstnTk):
     # -- layout -------------------------------------------------------------
 
     def _build(self):
-        bar = ttk.Frame(self)
-        bar.pack(fill="x", padx=6, pady=4)
-        ttk.Label(bar, text="Source:").pack(side="left")
+        p = PALETTE
+        header = tk.Frame(self, background=p["header"], padx=16, pady=10)
+        header.pack(fill="x")
+        brand = tk.Frame(header, background=p["header"])
+        brand.pack(side="left")
+        tk.Label(brand, text="IFC+SG Checker", background=p["header"],
+                 foreground=p["header_text"], font=(UI_FONT_BOLD, 13)).pack(anchor="w")
+        tk.Label(brand, text="CORENET X pre-flight for MicroStation  \u00b7  unofficial tool",
+                 background=p["header"], foreground=p["header_muted"],
+                 font=(UI_FONT, 8)).pack(anchor="w")
+
+        cop = tk.Frame(header, background=p["header"])
+        cop.pack(side="right")
+        tk.Label(cop, text="CODE OF PRACTICE", background=p["header"],
+                 foreground=p["header_muted"], font=(UI_FONT_BOLD, 7)).pack(anchor="w")
+        cop_row = tk.Frame(cop, background=p["header"])
+        cop_row.pack(anchor="w")
+        self.cop_var = tk.StringVar()
+        self.cop_box = ttk.Combobox(cop_row, textvariable=self.cop_var,
+                                    state="readonly", width=38)
+        self.cop_box.pack(side="left")
+        self.cop_box.bind("<<ComboboxSelected>>", self.on_cop_change)
+        self.cop_link = tk.Label(cop_row, text="COP document \u2197", cursor="hand2",
+                                 background=p["header"], foreground="#8cc4ff",
+                                 font=(UI_FONT, 8, "underline"), padx=10)
+        self.cop_link.pack(side="left")
+        self.cop_link.bind("<Button-1>", lambda _e: self.open_cop_document())
+
+        body = ttk.Frame(self, padding=(12, 10, 12, 0))
+        body.pack(fill="both", expand=True)
+
+        card = ttk.Frame(body, style="Card.TFrame", padding=(12, 10))
+        card.pack(fill="x")
+        bar = ttk.Frame(card, style="Inner.TFrame")
+        bar.pack(fill="x")
+        ttk.Label(bar, text="Source", style="CardMuted.TLabel").pack(side="left", padx=(0, 8))
         self.source_var = tk.StringVar()
         self.source_box = ttk.Combobox(bar, textvariable=self.source_var,
                                        state="readonly", width=60)
-        self.source_box.pack(side="left", padx=6)
-        self.refresh_btn = ttk.Button(bar, text="Refresh", command=self.refresh_sources)
-        self.refresh_btn.pack(side="left")
-        self.browse_btn = ttk.Button(bar, text="Browse IFC...", command=self.browse)
-        self.browse_btn.pack(side="left", padx=4)
-        self.run_btn = ttk.Button(bar, text="Run check", command=self.run_check)
-        self.run_btn.pack(side="left", padx=10)
+        self.source_box.pack(side="left", fill="x", expand=True)
         self.cancel_btn = ttk.Button(bar, text="Cancel", command=self.cancel_work)
-        self.cancel_btn.pack(side="left")
+        self.cancel_btn.pack(side="right", padx=(6, 0))
         self.cancel_btn.state(["disabled"])
+        self.run_btn = ttk.Button(bar, text="\u25b6  Run check", style="Accent.TButton",
+                                  command=self.run_check)
+        self.run_btn.pack(side="right", padx=(10, 0))
+        self.browse_btn = ttk.Button(bar, text="Browse IFC...", command=self.browse)
+        self.browse_btn.pack(side="right", padx=(6, 0))
+        self.refresh_btn = ttk.Button(bar, text="Refresh", command=self.refresh_sources)
+        self.refresh_btn.pack(side="right", padx=(6, 0))
 
-        stamp = ttk.Frame(self)
-        stamp.pack(fill="x", padx=6)
-        self.stamp_lbl = ttk.Label(stamp, text="")
-        self.stamp_lbl.pack(side="left")
+        self.stamp_lbl = ttk.Label(card, text="", style="CardMuted.TLabel")
+        self.stamp_lbl.pack(fill="x", pady=(8, 0))
 
-        self.warn_lbl = ttk.Label(self, foreground=STATUS_COLOUR[WARN],
-                                  wraplength=900, justify="left")
-        self.warn_lbl.pack(fill="x", padx=6, pady=(2, 0))
+        self.banner = ttk.Frame(body)
+        self.banner.pack(fill="x")
+        self.warn_lbl = tk.Label(self.banner, background=p["banner"],
+                                 foreground=p["banner_text"], anchor="w",
+                                 justify="left", wraplength=900, padx=12, pady=7,
+                                 font=(UI_FONT, 9))
         self._refresh_stamp()
 
-        self.verdict_lbl = ttk.Label(self, text="No check run yet.",
-                                     font=("Segoe UI", 11, "bold"))
-        self.verdict_lbl.pack(fill="x", padx=6, pady=(6, 2))
+        summary = ttk.Frame(body)
+        summary.pack(fill="x", pady=(10, 2))
+        self.verdict_lbl = ttk.Label(summary, text="No check run yet. Choose a source "
+                                                   "and click Run check.",
+                                     style="Verdict.TLabel")
+        self.verdict_lbl.pack(side="left", fill="x", expand=True)
+        self.chips = {}
+        for status in (PASS, UNKNOWN, WARN, FAIL):
+            chip = tk.Label(summary, text="%s  \u2013" % STATUS_GLYPH[status],
+                            background=STATUS_TINT[status],
+                            foreground=STATUS_COLOUR[status],
+                            font=(UI_FONT_BOLD, 9), padx=10, pady=3, cursor="hand2")
+            chip.pack(side="right", padx=(6, 0))
+            chip.bind("<Button-1>", lambda _e, s=status: self.toggle_status(s))
+            self.chips[status] = chip
 
-        nb = ttk.Notebook(self)
-        nb.pack(fill="both", expand=True, padx=6, pady=4)
-        self.rules_tab = ttk.Frame(nb)
-        self.objects_tab = ttk.Frame(nb)
-        self.breakdown_tab = ttk.Frame(nb)
+        nb = ttk.Notebook(body)
+        nb.pack(fill="both", expand=True, pady=(6, 8))
+        self.rules_tab = ttk.Frame(nb, padding=(10, 8), style="Inner.TFrame")
+        self.objects_tab = ttk.Frame(nb, padding=(10, 8), style="Inner.TFrame")
+        self.breakdown_tab = ttk.Frame(nb, padding=(10, 8), style="Inner.TFrame")
         nb.add(self.rules_tab, text="Rules and findings")
         nb.add(self.objects_tab, text="Object checklist")
         nb.add(self.breakdown_tab, text="By discipline and storey")
@@ -410,51 +614,165 @@ class CheckerWindow(MstnTk):
         self._build_objects_tab()
         self._build_breakdown_tab()
 
-        status_bar = ttk.Frame(self)
-        status_bar.pack(fill="x", side="bottom")
-        self.status = ttk.Label(status_bar, text="Ready.", relief="sunken", anchor="w")
+        status_bar = ttk.Frame(self, style="Status.TFrame")
+        status_bar.pack(fill="x", side="bottom", before=body)
+        tk.Frame(self, background=p["border"], height=1).pack(
+            fill="x", side="bottom", before=body)
+        self.status = ttk.Label(status_bar, text="Ready.", style="Status.TLabel", anchor="w")
         self.status.pack(fill="x", side="left", expand=True)
         self.progress = ttk.Progressbar(status_bar, length=180, mode="determinate",
                                         maximum=100)
-        self.progress.pack(side="right")
+        self.progress.pack(side="right", padx=10)
+        self._load_editions()
+
+    # -- COP editions ---------------------------------------------------------
+
+    def _load_editions(self):
+        try:
+            self.editions = Library.available(self.library.root)
+        except Exception:
+            self.editions = []
+        self.cop_box["values"] = [edition.label for edition in self.editions]
+        self._show_current_edition()
+
+    def _show_current_edition(self):
+        want = os.path.normcase(os.path.abspath(self.library.path))
+        for index, edition in enumerate(self.editions):
+            if os.path.normcase(os.path.abspath(edition.path)) == want:
+                self.cop_box.current(index)
+                return
+
+    def on_cop_change(self, _event=None):
+        index = self.cop_box.current()
+        if index < 0 or index >= len(self.editions):
+            return
+        edition = self.editions[index]
+        if os.path.normcase(os.path.abspath(edition.path)) == os.path.normcase(
+                os.path.abspath(self.library.path)):
+            return
+        if self.busy:
+            self._show_current_edition()
+            self.set_status("Wait for the current check to finish before changing COP.")
+            return
+        try:
+            library = Library(self.library.root, edition.path)
+            library.latest_cop = self.editions[0].cop_edition
+        except Exception as exc:
+            self._show_current_edition()
+            messagebox.showerror("IFC+SG Checker",
+                                 "Cannot load COP %s:\n%s" % (edition.cop_edition, exc),
+                                 parent=self)
+            return
+        if self.ifc is not None and self.source is not None:
+            self._rerun_rules(library)
+        else:
+            self._commit_library(library)
+            self.set_status("COP %s selected." % edition.cop_edition)
+
+    def _commit_library(self, library):
+        self.library = library
+        self.engine = Engine(library)
+        _update_settings(cop=library.editions["cop_edition"])
+        self._refresh_stamp()
+        self._show_current_edition()
+
+    def _rerun_rules(self, library):
+        """Re-evaluate the parsed model against another COP edition.
+
+        The new edition is committed only when the re-check succeeds, so a
+        cancelled or failed run never shows old results under a new COP header.
+        """
+        parsed, source = self.ifc, self.source
+        engine = Engine(library)
+        self.set_status("Re-checking against COP %s ..." % library.editions["cop_edition"])
+
+        def work(cancel, progress):
+            ctx, results = engine.run(
+                parsed, progress=lambda label, done, total: progress(label, done, total),
+                cancel=cancel)
+            return source, parsed, ctx, report_mod.Report(
+                source, parsed, ctx, results, library)
+
+        def done(payload):
+            self._commit_library(library)
+            self._finish_check(payload)
+
+        def failed(exc, details):
+            self._show_current_edition()
+            messagebox.showerror(
+                "IFC+SG Checker", "Re-check failed:\n%s\n\n%s" % (exc, details), parent=self)
+            self.set_status("Re-check failed; results still use COP %s."
+                            % self.library.editions["cop_edition"])
+
+        def cancelled():
+            self._show_current_edition()
+            self.set_status("Cancelled; results still use COP %s."
+                            % self.library.editions["cop_edition"])
+
+        self._start_worker(work, done, failed, cancel_callback=cancelled)
+
+    def open_cop_document(self):
+        meta = self.library.metadata
+        url = meta.get("cop_url") or meta.get("official_cop_url")
+        if url:
+            webbrowser.open(url)
+
+    def toggle_status(self, status):
+        var = self.show.get(status)
+        if var is not None:
+            var.set(not var.get())
+            self.populate()
+
+    def _update_chips(self):
+        counts = self.report.counts if self.report is not None else None
+        for status, chip in self.chips.items():
+            value = "\u2013" if counts is None else str(counts.get(status, 0))
+            chip.configure(text="%s  %s" % (STATUS_GLYPH[status], value))
 
     def _refresh_stamp(self):
         ed = self.library.editions
         age = ed["mapping_age_days"]
-        age_text = "" if age is None else "  |  %d days old" % age
+        age_text = "" if age is None else " (%d days old)" % age
         self.stamp_lbl.configure(
-            text="Library: %s  |  SGPsets: %d  |  mapping edition: %s%s  |  COP: %s"
-                 % (ed["sgpset_source"], ed["sgpset_count"], ed["mapping_edition"],
-                    age_text, ed["cop_edition"]))
+            text="COP %s  \u00b7  IFC+SG mapping %s%s  \u00b7  %d property sets  \u00b7  "
+                 "%d identified components"
+                 % (ed["cop_edition"], ed["mapping_edition"], age_text,
+                    ed["sgpset_count"], ed["identified_components"]))
         if not self.library.is_complete:
-            self.warn_lbl.configure(
-                text="The bundled catalogue is marked incomplete. Rebuild data/catalogue.json "
-                     "from the current official BCA mapping before relying on property checks.")
+            text = ("The selected catalogue is marked incomplete. Rebuild it from the current "
+                    "official BCA mapping before relying on property checks.")
+        elif ed.get("superseded"):
+            text = ("COP %s is superseded by COP %s. Use it only for projects still "
+                    "assessed under COP %s." % (ed["cop_edition"], ed["latest_cop"],
+                                                 ed["cop_edition"]))
         elif age is not None and age > 365:
-            self.warn_lbl.configure(
-                text="Mapping edition %s is %d days old and was built from %s. The BCA "
-                     "workbook is versioned and work-in-progress: verify the edition against "
-                     "info.corenet.gov.sg before relying on this for a submission."
-                     % (ed["mapping_edition"], age, ed["source_files"]))
+            text = ("Mapping edition %s is %d days old. The BCA workbook is versioned and "
+                    "work-in-progress: verify the edition against info.corenet.gov.sg "
+                    "before relying on this for a submission." % (ed["mapping_edition"], age))
         else:
-            self.warn_lbl.configure(text="")
+            text = ""
+        self.warn_lbl.configure(text=text)
+        if text:
+            self.warn_lbl.pack(fill="x", pady=(8, 0))
+        else:
+            self.warn_lbl.pack_forget()
 
     def _build_rules_tab(self):
-        status_row = ttk.Frame(self.rules_tab)
+        status_row = ttk.Frame(self.rules_tab, style="Inner.TFrame")
         status_row.pack(fill="x", pady=(4, 0))
-        ttk.Label(status_row, text="Show:").pack(side="left")
+        ttk.Label(status_row, text="Show", style="CardMuted.TLabel").pack(side="left")
         self.show = {}
         for status in (FAIL, WARN, UNKNOWN, PASS, NOT_APPLICABLE):
             var = tk.BooleanVar(value=status in (FAIL, WARN, UNKNOWN))
             self.show[status] = var
-            ttk.Checkbutton(status_row, text=STATUS_GLYPH[status], variable=var,
+            ttk.Checkbutton(status_row, style="Card.TCheckbutton", text=STATUS_GLYPH[status], variable=var,
                             command=self.populate).pack(side="left", padx=3)
         # Explicit selection avoids an accidental first-click triggering a native
         # full-model identity/range index on a very large reference.
         self.autoselect = tk.BooleanVar(value=False)
-        ttk.Checkbutton(status_row, text="Select in MicroStation on click",
+        ttk.Checkbutton(status_row, style="Card.TCheckbutton", text="Select in MicroStation on click",
                         variable=self.autoselect).pack(side="left", padx=14)
-        ttk.Checkbutton(status_row, text="Keep on top", variable=self.keep_on_top,
+        ttk.Checkbutton(status_row, style="Card.TCheckbutton", text="Keep on top", variable=self.keep_on_top,
                         command=self._apply_on_top).pack(side="left")
         ttk.Button(status_row, text="Clear filters",
                    command=self.clear_filters).pack(side="right")
@@ -462,14 +780,14 @@ class CheckerWindow(MstnTk):
         # A single inline bar. Boxes are not stacked under the headings: entry
         # widths are in characters and tree columns in pixels, so they cannot
         # track each other and the near-miss reads as a broken second header.
-        filt = ttk.Frame(self.rules_tab)
+        filt = ttk.Frame(self.rules_tab, style="Inner.TFrame")
         filt.pack(fill="x", pady=(4, 2))
-        ttk.Label(filt, text="Filter:").pack(side="left", padx=(0, 8))
+        ttk.Label(filt, text="Filter", style="CardMuted.TLabel").pack(side="left", padx=(0, 8))
         self.col_filters = {}
         for key, label, width in (("rule", "Rule", 12), ("status", "Status", 8),
                                   ("entity", "IFC entity", 12), ("name", "Name", 12),
                                   ("message", "Detail", 22)):
-            ttk.Label(filt, text=label, foreground="#666").pack(side="left")
+            ttk.Label(filt, text=label, style="CardMuted.TLabel").pack(side="left")
             var = tk.StringVar()
             var.trace_add(
                 "write",
@@ -477,7 +795,7 @@ class CheckerWindow(MstnTk):
             self.col_filters[key] = var
             ttk.Entry(filt, textvariable=var, width=width).pack(side="left", padx=(3, 12))
 
-        wrap = ttk.Frame(self.rules_tab)
+        wrap = ttk.Frame(self.rules_tab, style="Inner.TFrame")
         wrap.pack(fill="both", expand=True)
         wrap.rowconfigure(0, weight=1)
         wrap.columnconfigure(0, weight=1)
@@ -489,8 +807,8 @@ class CheckerWindow(MstnTk):
         self.tree.heading("entity", text="IFC entity")
         self.tree.heading("name", text="Name")
         self.tree.heading("message", text="Detail")
-        self.tree.column("#0", width=240, minwidth=130, stretch=False)
-        self.tree.column("status", width=80, minwidth=60, stretch=False, anchor="center")
+        self.tree.column("#0", width=290, minwidth=130, stretch=False)
+        self.tree.column("status", width=90, minwidth=60, stretch=False, anchor="w")
         self.tree.column("entity", width=150, minwidth=90, stretch=False)
         self.tree.column("name", width=150, minwidth=80, stretch=False)
         self.tree.column("message", width=520, minwidth=220, stretch=True)
@@ -502,11 +820,12 @@ class CheckerWindow(MstnTk):
         hsb.grid(row=1, column=0, sticky="ew")
         for status, colour in STATUS_COLOUR.items():
             self.tree.tag_configure(status, foreground=colour)
-        self.tree.tag_configure("rulerow", font=("Segoe UI", 9, "bold"))
+        self.tree.tag_configure("rulerow", font=(UI_FONT_BOLD, 9), background="#f7f9fc")
+        self.tree.tag_configure("finding", foreground="#344054")
         self.tree.bind("<<TreeviewSelect>>", self.on_row_select)
         self.tree.bind("<Double-1>", self.on_row_activate)
 
-        act = ttk.Frame(self.rules_tab)
+        act = ttk.Frame(self.rules_tab, style="Inner.TFrame")
         act.pack(fill="x", pady=5)
         ttk.Button(act, text="Select in MicroStation",
                    command=self.select_current).pack(side="left")
@@ -522,7 +841,7 @@ class CheckerWindow(MstnTk):
                    command=lambda: self.export("html")).pack(side="right", padx=4)
         ttk.Button(act, text="Export BCF",
                    command=self.export_bcf).pack(side="right")
-        self.shown_lbl = ttk.Label(act, text="", foreground="#666")
+        self.shown_lbl = ttk.Label(act, text="", style="CardMuted.TLabel")
         self.shown_lbl.pack(side="right", padx=12)
 
     def _apply_on_top(self):
@@ -571,12 +890,12 @@ class CheckerWindow(MstnTk):
         self._filter_jobs.clear()
 
     def _build_objects_tab(self):
-        filt = ttk.Frame(self.objects_tab)
+        filt = ttk.Frame(self.objects_tab, style="Inner.TFrame")
         filt.pack(fill="x", pady=4)
-        ttk.Label(filt, text="Filter:").pack(side="left", padx=(0, 8))
+        ttk.Label(filt, text="Filter", style="CardMuted.TLabel").pack(side="left", padx=(0, 8))
         self.obj_filters = {}
         for key, label, width in (("entity", "IFC class", 18), ("rules", "Failing rules", 26)):
-            ttk.Label(filt, text=label, foreground="#666").pack(side="left")
+            ttk.Label(filt, text=label, style="CardMuted.TLabel").pack(side="left")
             var = tk.StringVar()
             var.trace_add(
                 "write",
@@ -584,10 +903,10 @@ class CheckerWindow(MstnTk):
             self.obj_filters[key] = var
             ttk.Entry(filt, textvariable=var, width=width).pack(side="left", padx=(3, 12))
         self.only_failing = tk.BooleanVar(value=False)
-        ttk.Checkbutton(filt, text="Only classes with failures", variable=self.only_failing,
+        ttk.Checkbutton(filt, style="Card.TCheckbutton", text="Only classes with failures", variable=self.only_failing,
                         command=self.populate_objects).pack(side="left")
 
-        wrap = ttk.Frame(self.objects_tab)
+        wrap = ttk.Frame(self.objects_tab, style="Inner.TFrame")
         wrap.pack(fill="both", expand=True, pady=4)
         wrap.rowconfigure(0, weight=1)
         wrap.columnconfigure(0, weight=1)
@@ -610,19 +929,19 @@ class CheckerWindow(MstnTk):
         self.obj_tree.bind("<Double-1>", self.on_class_activate)
         ttk.Label(self.objects_tab,
                   text="Double-click a class to select every failing object of that class.",
-                  foreground="#555").pack(anchor="w")
+                  style="CardMuted.TLabel").pack(anchor="w")
 
     def _build_breakdown_tab(self):
         self.bd_nodes = {}
 
-        bar = ttk.Frame(self.breakdown_tab)
+        bar = ttk.Frame(self.breakdown_tab, style="Inner.TFrame")
         bar.pack(fill="x", pady=4)
-        ttk.Label(bar, text="Filter:").pack(side="left", padx=(0, 8))
+        ttk.Label(bar, text="Filter", style="CardMuted.TLabel").pack(side="left", padx=(0, 8))
         self.bd_filters = {}
         for key, label, width in (("discipline", "Discipline", 16),
                                   ("storey", "Storey", 14),
                                   ("entity", "IFC class", 14)):
-            ttk.Label(bar, text=label, foreground="#666").pack(side="left")
+            ttk.Label(bar, text=label, style="CardMuted.TLabel").pack(side="left")
             var = tk.StringVar()
             var.trace_add(
                 "write",
@@ -630,10 +949,10 @@ class CheckerWindow(MstnTk):
             self.bd_filters[key] = var
             ttk.Entry(bar, textvariable=var, width=width).pack(side="left", padx=(3, 12))
         self.bd_only_failing = tk.BooleanVar(value=False)
-        ttk.Checkbutton(bar, text="Only rows with failures", variable=self.bd_only_failing,
+        ttk.Checkbutton(bar, style="Card.TCheckbutton", text="Only rows with failures", variable=self.bd_only_failing,
                         command=self.populate_breakdown).pack(side="left")
 
-        wrap = ttk.Frame(self.breakdown_tab)
+        wrap = ttk.Frame(self.breakdown_tab, style="Inner.TFrame")
         wrap.pack(fill="both", expand=True)
         wrap.rowconfigure(0, weight=1)
         wrap.columnconfigure(0, weight=1)
@@ -658,7 +977,7 @@ class CheckerWindow(MstnTk):
         self.bd_tree.bind("<Double-1>", self.on_breakdown_activate)
         ttk.Label(self.breakdown_tab,
                   text="Double-click any row to select those elements in MicroStation.",
-                  foreground="#555").pack(anchor="w")
+                  style="CardMuted.TLabel").pack(anchor="w")
 
     # -- background work ----------------------------------------------------
 
@@ -668,18 +987,21 @@ class CheckerWindow(MstnTk):
         for control in controls:
             control.state(["disabled"] if busy else ["!disabled"])
         self.source_box.configure(state="disabled" if busy else "readonly")
+        self.cop_box.configure(state="disabled" if busy else "readonly")
         self.cancel_btn.state(
             ["!disabled"] if busy and cancellable else ["disabled"])
         if not busy:
             self.progress["value"] = 0
 
-    def _start_worker(self, action, callback, error_callback=None, cancellable=True):
+    def _start_worker(self, action, callback, error_callback=None, cancellable=True,
+                      cancel_callback=None):
         """Run pure Python/file work without blocking MicroStation or Tk."""
         if self.busy:
             return
         self._worker_queue = queue.Queue()
         self._worker_callback = callback
         self._worker_error_callback = error_callback
+        self._worker_cancel_callback = cancel_callback
         self._cancel_event = threading.Event()
         self._set_busy(True, cancellable=cancellable)
 
@@ -754,9 +1076,11 @@ class CheckerWindow(MstnTk):
         self._set_busy(False)
         callback = self._worker_callback
         error_callback = self._worker_error_callback
+        cancel_callback = getattr(self, "_worker_cancel_callback", None)
         self._worker = None
         self._worker_callback = None
         self._worker_error_callback = None
+        self._worker_cancel_callback = None
         self._cancel_event = None
 
         if self._closing:
@@ -764,6 +1088,8 @@ class CheckerWindow(MstnTk):
             return
         if terminal is None or terminal[0] == "cancelled":
             self.set_status("Cancelled.")
+            if cancel_callback is not None:
+                cancel_callback()
             return
         if terminal[0] == "error":
             _kind, exc, details = terminal
@@ -902,6 +1228,7 @@ class CheckerWindow(MstnTk):
         self.tree.delete(*self.tree.get_children())
         self.obj_tree.delete(*self.obj_tree.get_children())
         self.bd_tree.delete(*self.bd_tree.get_children())
+        self._update_chips()
         gc.collect()
 
     def _memory_preflight(self, path):
@@ -941,6 +1268,7 @@ class CheckerWindow(MstnTk):
         self.populate()
         self.populate_objects()
         self.populate_breakdown()
+        self._update_chips()
         self.verdict_lbl.configure(
             text=self.report.verdict,
             foreground=STATUS_COLOUR[FAIL] if self.report.counts[FAIL]
@@ -1027,8 +1355,10 @@ class CheckerWindow(MstnTk):
 
             node = self.tree.insert(
                 "", "end", text="%s  %s" % (res.rule_id, res.title),
-                values=(STATUS_GLYPH[res.status], res.declared_severity,
-                        "%d" % len(res.findings), res.summary),
+                values=(STATUS_GLYPH[res.status], "",
+                        "%d finding%s" % (len(res.findings),
+                                          "" if len(res.findings) == 1 else "s"),
+                        res.summary),
                 tags=(res.status, "rulerow"))
             rule_ids = []
             for f in res.findings:
@@ -1043,9 +1373,9 @@ class CheckerWindow(MstnTk):
                 child = self.tree.insert(
                     node, "end",
                     text="    #%s" % f.ifc_id if f.ifc_id is not None else "    -",
-                    values=(f.severity, f.entity, f.name,
+                    values=("\u25cf " + str(f.severity), f.entity, f.name,
                             f.message + (("  |  " + f.detail) if f.detail else "")),
-                    tags=(FAIL if f.severity == "ERROR" else WARN,))
+                    tags=("finding",))
                 self.row_data[child] = {"kind": "finding", "rule": res.rule_id,
                                         "ids": f.all_ids}
                 visible_findings += 1
@@ -1344,7 +1674,7 @@ class CheckerWindow(MstnTk):
             pass
 
 
-def launch(library_root=None, dock=True):
+def launch(library_root=None, dock=True, cop=None):
     if not HAS_TK:
         raise RuntimeError("tkinter is not available in this Python environment.")
     existing = getattr(builtins, SINGLETON_NAME, None)
@@ -1359,7 +1689,7 @@ def launch(library_root=None, dock=True):
             delattr(builtins, SINGLETON_NAME)
         except AttributeError:
             pass
-    window = CheckerWindow(library_root, dock=dock)
+    window = CheckerWindow(library_root, dock=dock, cop=cop)
     setattr(builtins, SINGLETON_NAME, window)
     MstnTk.run()
     return window

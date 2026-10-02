@@ -1,16 +1,19 @@
-"""Load and resolve the single-file IFC+SG checker catalogue."""
+"""Load and resolve IFC+SG checker catalogues, one per CORENET X COP edition."""
 
 import datetime
 import difflib
+import glob
 import json
 import os
+import re
 
 EXACT = "EXACT"
 CASE_MISMATCH = "CASE_MISMATCH"
 NEAR_MISS = "NEAR_MISS"
 UNKNOWN = "UNKNOWN"
 
-CATALOGUE_NAME = "catalogue.json"
+CATALOGUE_DIR = "catalogues"
+CATALOGUE_NAME = "catalogue.json"          # legacy single-file layout
 CATALOGUE_FORMAT = "ifcsg-checker-catalogue"
 CATALOGUE_FORMAT_VERSION = 1
 PROPERTY_TYPES = {
@@ -25,6 +28,57 @@ DEFAULT_ROOTS = (_TOOL_ROOT, os.environ.get("IFCSG_CHECKER_DIR", ""))
 
 def _norm(name):
     return "".join(ch for ch in str(name).lower() if ch.isalnum())
+
+
+def cop_key(edition):
+    """Sortable key for a COP edition string such as '3.1' or '4'."""
+    numbers = [int(part) for part in re.findall(r"\d+", str(edition or ""))]
+    return tuple(numbers) or (0,)
+
+
+def same_cop(a, b):
+    return cop_key(a) == cop_key(b) or str(a).strip().lower() == str(b).strip().lower()
+
+
+def catalogue_paths(root):
+    """Every catalogue file under root, in no particular order."""
+    if not root:
+        return []
+    paths = sorted(glob.glob(os.path.join(root, "data", CATALOGUE_DIR, "*.json")))
+    legacy = os.path.join(root, "data", CATALOGUE_NAME)
+    if not paths and os.path.isfile(legacy):
+        paths = [legacy]
+    return paths
+
+
+def _read_metadata(path):
+    with open(path, "r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+    if payload.get("format") != CATALOGUE_FORMAT:
+        return None
+    return payload.get("metadata") or {}
+
+
+class Edition(object):
+    """Summary of one installed catalogue, used by the COP selector."""
+
+    __slots__ = ("cop_edition", "mapping_edition", "cop_published", "title", "path")
+
+    def __init__(self, path, metadata):
+        self.path = path
+        self.cop_edition = str(metadata.get("cop_edition") or "unknown")
+        self.mapping_edition = str(metadata.get("mapping_edition") or "unknown")
+        self.cop_published = str(metadata.get("cop_published") or "")
+        self.title = str(metadata.get("cop_title") or "")
+
+    @property
+    def label(self):
+        published = " (%s)" % self.cop_published if self.cop_published else ""
+        return "COP %s%s  |  mapping %s" % (
+            self.cop_edition, published, self.mapping_edition)
+
+    def __repr__(self):
+        return "<Edition COP %s mapping %s>" % (self.cop_edition, self.mapping_edition)
 
 
 class Resolution(object):
@@ -45,14 +99,20 @@ class Resolution(object):
 
 
 class Library(object):
-    """Validated runtime view of ``data/catalogue.json``."""
+    """Validated runtime view of one ``data/catalogues/cop-*.json`` file."""
 
-    def __init__(self, root):
+    def __init__(self, root, path=None):
         self.root = root
-        self.path = os.path.join(root, "data", CATALOGUE_NAME)
+        if path is None:
+            found = Library.available(root)
+            if not found:
+                raise IOError("No IFC+SG catalogue under %s" % root)
+            path = found[0].path
+        self.path = path
         self.load_errors = []
         self.catalogue = self._read()
         self.metadata = self.catalogue.get("metadata", {})
+        self.latest_cop = self.metadata.get("cop_edition")
         self.sgpsets = {}
         self.sgpsets_by_norm = {}
         self.property_owners = {}
@@ -61,14 +121,59 @@ class Library(object):
         self._index()
 
     @staticmethod
-    def discover(explicit_root=None):
+    def find_root(explicit_root=None):
         roots = ([explicit_root] if explicit_root else []) + list(DEFAULT_ROOTS)
         for root in roots:
-            if root and os.path.isfile(os.path.join(root, "data", CATALOGUE_NAME)):
-                return Library(root)
+            if root and catalogue_paths(root):
+                return root
         raise IOError(
-            "IFC+SG catalogue not found. Looked for data/%s under: %s"
-            % (CATALOGUE_NAME, ", ".join(x for x in roots if x)))
+            "IFC+SG catalogue not found. Looked for data/%s/*.json under: %s"
+            % (CATALOGUE_DIR, ", ".join(x for x in roots if x)))
+
+    @staticmethod
+    def available(explicit_root=None):
+        """Installed COP editions, newest first."""
+        root = explicit_root if explicit_root and catalogue_paths(explicit_root) \
+            else Library.find_root(explicit_root)
+        out = []
+        for path in catalogue_paths(root):
+            try:
+                metadata = _read_metadata(path)
+            except (OSError, ValueError):
+                continue
+            if metadata is not None:
+                out.append(Edition(path, metadata))
+        out.sort(key=lambda item: (cop_key(item.cop_edition), item.mapping_edition),
+                 reverse=True)
+        return out
+
+    @staticmethod
+    def discover(explicit_root=None, cop=None):
+        """Load the catalogue for a COP edition; the newest when cop is None.
+
+        An unknown edition raises rather than silently checking against a
+        different code of practice.
+        """
+        root = Library.find_root(explicit_root)
+        editions = Library.available(root)
+        if not editions:
+            raise IOError("No readable IFC+SG catalogue under %s" % root)
+        chosen = editions[0]
+        if cop:
+            matches = [item for item in editions if same_cop(item.cop_edition, cop)]
+            if not matches:
+                raise ValueError(
+                    "COP edition '%s' is not installed. Available: %s"
+                    % (cop, ", ".join(item.cop_edition for item in editions)))
+            chosen = matches[0]
+        library = Library(root, chosen.path)
+        library.latest_cop = editions[0].cop_edition
+        return library
+
+    @property
+    def is_superseded(self):
+        return bool(self.latest_cop) and not same_cop(
+            self.latest_cop, self.metadata.get("cop_edition"))
 
     def _read(self):
         try:
@@ -171,6 +276,9 @@ class Library(object):
                 for source in sources) or "-",
             "mapping_age_days": self.mapping_age_days(),
             "authoritative_mapping": bool(self.metadata.get("authoritative_mapping")),
+            "cop_published": self.metadata.get("cop_published") or "",
+            "latest_cop": self.latest_cop or cop,
+            "superseded": self.is_superseded,
         }
 
     def mapping_age_days(self):
